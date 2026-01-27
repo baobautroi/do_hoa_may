@@ -1359,6 +1359,198 @@ void drawGrassField() {
     }
 }
 
+// Draw running track around the court (outside the fence)
+void drawRunningTrack() {
+    glPushMatrix();
+    
+    // === Track Parameters (in meters) ===
+    // trackWidth: Chiều rộng đường chạy (width of running track)
+    float trackWidth = 3.0f;  // 3 mét - đủ cho 2 làn chạy
+    
+    // trackOffset: Khoảng cách từ trung tâm sân đến mép TRONG của đường chạy
+    //              (distance from court center to INNER edge of track)
+    float trackOffset = 9.0f; // 8 mét
+    // => Mép NGOÀI của đường chạy sẽ cách trung tâm sân: 8 + 3 = 11 mét
+    
+    // Running track surface (reddish-brown athletic track color)
+    glColor3f(0.7f, 0.3f, 0.25f); // Red brick/athletic track color
+    
+    // Draw track as 4 rectangular segments forming a loop
+    // Bottom segment
+    glBegin(GL_QUADS);
+    glVertex3f(-COURT_LENGTH/2 - trackOffset, 0.005f, -COURT_WIDTH/2 - trackOffset);
+    glVertex3f(COURT_LENGTH/2 + trackOffset, 0.005f, -COURT_WIDTH/2 - trackOffset);
+    glVertex3f(COURT_LENGTH/2 + trackOffset, 0.005f, -COURT_WIDTH/2 - trackOffset - trackWidth);
+    glVertex3f(-COURT_LENGTH/2 - trackOffset, 0.005f, -COURT_WIDTH/2 - trackOffset - trackWidth);
+    glEnd();
+    
+    // Top segment
+    glBegin(GL_QUADS);
+    glVertex3f(-COURT_LENGTH/2 - trackOffset, 0.005f, COURT_WIDTH/2 + trackOffset + trackWidth);
+    glVertex3f(COURT_LENGTH/2 + trackOffset, 0.005f, COURT_WIDTH/2 + trackOffset + trackWidth);
+    glVertex3f(COURT_LENGTH/2 + trackOffset, 0.005f, COURT_WIDTH/2 + trackOffset);
+    glVertex3f(-COURT_LENGTH/2 - trackOffset, 0.005f, COURT_WIDTH/2 + trackOffset);
+    glEnd();
+    
+    // Left segment
+    glBegin(GL_QUADS);
+    glVertex3f(-COURT_LENGTH/2 - trackOffset - trackWidth, 0.005f, -COURT_WIDTH/2 - trackOffset);
+    glVertex3f(-COURT_LENGTH/2 - trackOffset, 0.005f, -COURT_WIDTH/2 - trackOffset);
+    glVertex3f(-COURT_LENGTH/2 - trackOffset, 0.005f, COURT_WIDTH/2 + trackOffset);
+    glVertex3f(-COURT_LENGTH/2 - trackOffset - trackWidth, 0.005f, COURT_WIDTH/2 + trackOffset);
+    glEnd();
+    
+    // Right segment
+    glBegin(GL_QUADS);
+    glVertex3f(COURT_LENGTH/2 + trackOffset, 0.005f, -COURT_WIDTH/2 - trackOffset);
+    glVertex3f(COURT_LENGTH/2 + trackOffset + trackWidth, 0.005f, -COURT_WIDTH/2 - trackOffset);
+    glVertex3f(COURT_LENGTH/2 + trackOffset + trackWidth, 0.005f, COURT_WIDTH/2 + trackOffset);
+    glVertex3f(COURT_LENGTH/2 + trackOffset, 0.005f, COURT_WIDTH/2 + trackOffset);
+    glEnd();
+    
+    // === CORNER PIECES - Fill the 4 corners ===
+    // Top-left corner
+    glBegin(GL_QUADS);
+    glVertex3f(-COURT_LENGTH/2 - trackOffset - trackWidth, 0.005f, COURT_WIDTH/2 + trackOffset);
+    glVertex3f(-COURT_LENGTH/2 - trackOffset, 0.005f, COURT_WIDTH/2 + trackOffset);
+    glVertex3f(-COURT_LENGTH/2 - trackOffset, 0.005f, COURT_WIDTH/2 + trackOffset + trackWidth);
+    glVertex3f(-COURT_LENGTH/2 - trackOffset - trackWidth, 0.005f, COURT_WIDTH/2 + trackOffset + trackWidth);
+    glEnd();
+    
+    // Top-right corner
+    glBegin(GL_QUADS);
+    glVertex3f(COURT_LENGTH/2 + trackOffset, 0.005f, COURT_WIDTH/2 + trackOffset);
+    glVertex3f(COURT_LENGTH/2 + trackOffset + trackWidth, 0.005f, COURT_WIDTH/2 + trackOffset);
+    glVertex3f(COURT_LENGTH/2 + trackOffset + trackWidth, 0.005f, COURT_WIDTH/2 + trackOffset + trackWidth);
+    glVertex3f(COURT_LENGTH/2 + trackOffset, 0.005f, COURT_WIDTH/2 + trackOffset + trackWidth);
+    glEnd();
+    
+    // Bottom-left corner
+    glBegin(GL_QUADS);
+    glVertex3f(-COURT_LENGTH/2 - trackOffset - trackWidth, 0.005f, -COURT_WIDTH/2 - trackOffset - trackWidth);
+    glVertex3f(-COURT_LENGTH/2 - trackOffset, 0.005f, -COURT_WIDTH/2 - trackOffset - trackWidth);
+    glVertex3f(-COURT_LENGTH/2 - trackOffset, 0.005f, -COURT_WIDTH/2 - trackOffset);
+    glVertex3f(-COURT_LENGTH/2 - trackOffset - trackWidth, 0.005f, -COURT_WIDTH/2 - trackOffset);
+    glEnd();
+    
+    // Bottom-right corner
+    glBegin(GL_QUADS);
+    glVertex3f(COURT_LENGTH/2 + trackOffset, 0.005f, -COURT_WIDTH/2 - trackOffset - trackWidth);
+    glVertex3f(COURT_LENGTH/2 + trackOffset + trackWidth, 0.005f, -COURT_WIDTH/2 - trackOffset - trackWidth);
+    glVertex3f(COURT_LENGTH/2 + trackOffset + trackWidth, 0.005f, -COURT_WIDTH/2 - trackOffset);
+    glVertex3f(COURT_LENGTH/2 + trackOffset, 0.005f, -COURT_WIDTH/2 - trackOffset);
+    glEnd();
+    
+    // White lane markings
+    glColor3f(1.0f, 1.0f, 1.0f);
+    glLineWidth(2.0f);
+    
+    // Inner lane line (bottom)
+    glBegin(GL_LINES);
+    glVertex3f(-COURT_LENGTH/2 - trackOffset, 0.01f, -COURT_WIDTH/2 - trackOffset);
+    glVertex3f(COURT_LENGTH/2 + trackOffset, 0.01f, -COURT_WIDTH/2 - trackOffset);
+    glEnd();
+    
+    // Inner lane line (top)
+    glBegin(GL_LINES);
+    glVertex3f(-COURT_LENGTH/2 - trackOffset, 0.01f, COURT_WIDTH/2 + trackOffset);
+    glVertex3f(COURT_LENGTH/2 + trackOffset, 0.01f, COURT_WIDTH/2 + trackOffset);
+    glEnd();
+    
+    // Inner lane line (left)
+    glBegin(GL_LINES);
+    glVertex3f(-COURT_LENGTH/2 - trackOffset, 0.01f, -COURT_WIDTH/2 - trackOffset);
+    glVertex3f(-COURT_LENGTH/2 - trackOffset, 0.01f, COURT_WIDTH/2 + trackOffset);
+    glEnd();
+    
+    // Inner lane line (right)
+    glBegin(GL_LINES);
+    glVertex3f(COURT_LENGTH/2 + trackOffset, 0.01f, -COURT_WIDTH/2 - trackOffset);
+    glVertex3f(COURT_LENGTH/2 + trackOffset, 0.01f, COURT_WIDTH/2 + trackOffset);
+    glEnd();
+    
+    // Center lane divider (dashed line on bottom segment)
+    glLineStipple(4, 0xAAAA); // Dotted line pattern
+    glEnable(GL_LINE_STIPPLE);
+    
+    float centerLaneOffset = trackWidth / 2.0f;
+    glBegin(GL_LINES);
+    glVertex3f(-COURT_LENGTH/2 - trackOffset, 0.01f, -COURT_WIDTH/2 - trackOffset - centerLaneOffset);
+    glVertex3f(COURT_LENGTH/2 + trackOffset, 0.01f, -COURT_WIDTH/2 - trackOffset - centerLaneOffset);
+    glEnd();
+    
+    // Center lane on top
+    glBegin(GL_LINES);
+    glVertex3f(-COURT_LENGTH/2 - trackOffset, 0.01f, COURT_WIDTH/2 + trackOffset + centerLaneOffset);
+    glVertex3f(COURT_LENGTH/2 + trackOffset, 0.01f, COURT_WIDTH/2 + trackOffset + centerLaneOffset);
+    glEnd();
+    
+    // Center lane on left
+    glBegin(GL_LINES);
+    glVertex3f(-COURT_LENGTH/2 - trackOffset - centerLaneOffset, 0.01f, -COURT_WIDTH/2 - trackOffset);
+    glVertex3f(-COURT_LENGTH/2 - trackOffset - centerLaneOffset, 0.01f, COURT_WIDTH/2 + trackOffset);
+    glEnd();
+    
+    // Center lane on right
+    glBegin(GL_LINES);
+    glVertex3f(COURT_LENGTH/2 + trackOffset + centerLaneOffset, 0.01f, -COURT_WIDTH/2 - trackOffset);
+    glVertex3f(COURT_LENGTH/2 + trackOffset + centerLaneOffset, 0.01f, COURT_WIDTH/2 + trackOffset);
+    
+    // === Center lane on CORNERS (right-angle / L-shaped lines) ===
+    // Top-left corner (L-shape) - meet at junction point
+    glBegin(GL_LINES);
+    // Horizontal segment: from left edge to junction
+    glVertex3f(-COURT_LENGTH/2 - trackOffset - centerLaneOffset, 0.01f, COURT_WIDTH/2 + trackOffset);
+    glVertex3f(-COURT_LENGTH/2 - trackOffset - centerLaneOffset, 0.01f, COURT_WIDTH/2 + trackOffset + centerLaneOffset);
+    glEnd();
+    glBegin(GL_LINES);
+    // Vertical segment: from junction to right edge
+    glVertex3f(-COURT_LENGTH/2 - trackOffset - centerLaneOffset, 0.01f, COURT_WIDTH/2 + trackOffset + centerLaneOffset);
+    glVertex3f(-COURT_LENGTH/2 - trackOffset, 0.01f, COURT_WIDTH/2 + trackOffset + centerLaneOffset);
+    glEnd();
+    
+    // Top-right corner (L-shape) - meet at junction point
+    glBegin(GL_LINES);
+    // Horizontal segment: from right edge to junction
+    glVertex3f(COURT_LENGTH/2 + trackOffset + centerLaneOffset, 0.01f, COURT_WIDTH/2 + trackOffset);
+    glVertex3f(COURT_LENGTH/2 + trackOffset + centerLaneOffset, 0.01f, COURT_WIDTH/2 + trackOffset + centerLaneOffset);
+    glEnd();
+    glBegin(GL_LINES);
+    // Vertical segment: from left edge to junction
+    glVertex3f(COURT_LENGTH/2 + trackOffset, 0.01f, COURT_WIDTH/2 + trackOffset + centerLaneOffset);
+    glVertex3f(COURT_LENGTH/2 + trackOffset + centerLaneOffset, 0.01f, COURT_WIDTH/2 + trackOffset + centerLaneOffset);
+    glEnd();
+    
+    // Bottom-left corner (L-shape) - meet at junction point
+    glBegin(GL_LINES);
+    // Horizontal segment: from left edge to junction
+    glVertex3f(-COURT_LENGTH/2 - trackOffset - centerLaneOffset, 0.01f, -COURT_WIDTH/2 - trackOffset - centerLaneOffset);
+    glVertex3f(-COURT_LENGTH/2 - trackOffset - centerLaneOffset, 0.01f, -COURT_WIDTH/2 - trackOffset);
+    glEnd();
+    glBegin(GL_LINES);
+    // Vertical segment: from junction to right edge
+    glVertex3f(-COURT_LENGTH/2 - trackOffset - centerLaneOffset, 0.01f, -COURT_WIDTH/2 - trackOffset - centerLaneOffset);
+    glVertex3f(-COURT_LENGTH/2 - trackOffset, 0.01f, -COURT_WIDTH/2 - trackOffset - centerLaneOffset);
+    glEnd();
+    
+    // Bottom-right corner (L-shape) - meet at junction point
+    glBegin(GL_LINES);
+    // Horizontal segment: from right edge to junction
+    glVertex3f(COURT_LENGTH/2 + trackOffset + centerLaneOffset, 0.01f, -COURT_WIDTH/2 - trackOffset - centerLaneOffset);
+    glVertex3f(COURT_LENGTH/2 + trackOffset + centerLaneOffset, 0.01f, -COURT_WIDTH/2 - trackOffset);
+    glEnd();
+    glBegin(GL_LINES);
+    // Vertical segment: from left edge to junction
+    glVertex3f(COURT_LENGTH/2 + trackOffset, 0.01f, -COURT_WIDTH/2 - trackOffset - centerLaneOffset);
+    glVertex3f(COURT_LENGTH/2 + trackOffset + centerLaneOffset, 0.01f, -COURT_WIDTH/2 - trackOffset - centerLaneOffset);
+    glEnd();
+    
+    glDisable(GL_LINE_STIPPLE);
+    
+    glPopMatrix();
+}
+
+
 // Draw sun with rays for atmosphere
 void drawSun() {
     if (timeOfDay < 0.25f || timeOfDay > 0.75f) return; // Only draw during day
@@ -1657,6 +1849,7 @@ void display() {
     
     // Draw scene elements
     drawGrassField();  // Draw grass first (background)
+    drawRunningTrack(); // Draw running track around the court
     drawSun();         // Draw sun with rays
     drawCourt();
     drawNet();
