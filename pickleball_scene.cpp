@@ -911,42 +911,88 @@ void drawArchGate(float x, float z) {
     // glutSolidCube(1.0f);
     // glPopMatrix();
     
-    // === PARABOLIC ARCH ===
-    // Draw arch as series of small boxes forming a parabola
-    int numSegments = 80;  // INCREASED from 40 for smoother arch
-    float archWidth = gateWidth - pillarWidth * 2;  // Width between pillars
+    // === PARABOLIC ARCH (Smooth Seamless Version) ===
+    int numSegments = 100;
+    float archWidth = gateWidth - pillarWidth * 2;
+    float r = archWidth / 2;
+    float h = gateHeight;
+    float halfDepth = pillarDepth / 2.0f;
+    float halfThick = archThickness / 2.0f;
+
+    // We actully need to draw a 3D curving shape. 
+    // We can draw it as a series of connected quads for front, back, top, bottom faces.
     
+    // Draw TOP surface
+    glBegin(GL_QUAD_STRIP);
     for (int i = 0; i <= numSegments; i++) {
-        float t = (float)i / numSegments;  // 0 to 1
-        float xPos = -archWidth/2 + t * archWidth;
+        float x = -archWidth/2 + ((float)i / numSegments) * archWidth;
+        float y = h - (h / (r * r)) * (x * x);
         
-        // CORRECT PARABOLIC EQUATION: y = h - (h/r²) * x²
-        // Where: h = gateHeight (max height at center)
-        //        r = archWidth/2 (half-width, distance from center to edge)
-        //        x = xPos (horizontal position from center)
-        float r = archWidth / 2;
-        float h = gateHeight;
-        float yPos = h - (h / (r * r)) * (xPos * xPos);
+        // Calculate normal/angle for thickness offset
+        // Derivative dy/dx = -2*h*x/r^2
+        float slope = -2.0f * h * x / (r * r);
+        float angle = atan(slope); // Angle of tangent
+        float dx = -sin(angle) * halfThick; // Perpendicular offset x
+        float dy = cos(angle) * halfThick;  // Perpendicular offset y
         
-        glPushMatrix();
-        glTranslatef(xPos, yPos, 0);
-        
-        // Calculate rotation angle for smooth curve
-        float angle = 0;
-        if (i < numSegments) {
-            float nextT = (float)(i + 1) / numSegments;
-            float nextX = -archWidth/2 + nextT * archWidth;
-            // Use same parabolic formula for next point
-            float nextY = h - (h / (r * r)) * (nextX * nextX);
-            angle = atan2(nextY - yPos, nextX - xPos) * 180.0f / PI;
-        }
-        
-        glRotatef(angle, 0, 0, 1);
-        // IMPROVED: Wider boxes for seamless connection
-        glScalef(archWidth/numSegments * 1.5f, archThickness, pillarDepth);
-        glutSolidCube(1.0f);
-        glPopMatrix();
+        // Top outer edge points
+        glNormal3f(-sin(angle), cos(angle), 0.0f);
+        glVertex3f(x + dx, y + dy, halfDepth);
+        glVertex3f(x + dx, y + dy, -halfDepth);
     }
+    glEnd();
+    
+    // Draw BOTTOM surface
+    glBegin(GL_QUAD_STRIP);
+    for (int i = 0; i <= numSegments; i++) {
+        float x = -archWidth/2 + ((float)i / numSegments) * archWidth;
+        float y = h - (h / (r * r)) * (x * x);
+        
+        float slope = -2.0f * h * x / (r * r);
+        float angle = atan(slope);
+        float dx = -sin(angle) * halfThick;
+        float dy = cos(angle) * halfThick;
+        
+        // Bottom inner edge points
+        glNormal3f(sin(angle), -cos(angle), 0.0f);
+        glVertex3f(x - dx, y - dy, -halfDepth);
+        glVertex3f(x - dx, y - dy, halfDepth);
+    }
+    glEnd();
+    
+    // Draw FRONT face
+    glBegin(GL_QUAD_STRIP);
+    glNormal3f(0.0f, 0.0f, 1.0f);
+    for (int i = 0; i <= numSegments; i++) {
+        float x = -archWidth/2 + ((float)i / numSegments) * archWidth;
+        float y = h - (h / (r * r)) * (x * x);
+        
+        float slope = -2.0f * h * x / (r * r);
+        float angle = atan(slope);
+        float dx = -sin(angle) * halfThick;
+        float dy = cos(angle) * halfThick;
+        
+        glVertex3f(x + dx, y + dy, halfDepth);
+        glVertex3f(x - dx, y - dy, halfDepth);
+    }
+    glEnd();
+
+    // Draw BACK face
+    glBegin(GL_QUAD_STRIP);
+    glNormal3f(0.0f, 0.0f, -1.0f);
+    for (int i = 0; i <= numSegments; i++) {
+        float x = -archWidth/2 + ((float)i / numSegments) * archWidth;
+        float y = h - (h / (r * r)) * (x * x);
+        
+        float slope = -2.0f * h * x / (r * r);
+        float angle = atan(slope);
+        float dx = -sin(angle) * halfThick;
+        float dy = cos(angle) * halfThick;
+        
+        glVertex3f(x - dx, y - dy, -halfDepth);
+        glVertex3f(x + dx, y + dy, -halfDepth);
+    }
+    glEnd();
     
     // === BASE PLATFORM (optional decorative base) ===
     glColor3f(0.9f, 0.9f, 0.9f);
