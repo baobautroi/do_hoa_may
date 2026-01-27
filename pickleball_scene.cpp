@@ -1325,38 +1325,8 @@ void drawGrassField() {
     
     glPopMatrix();
     
-    // === DRAW DECORATIVE GRASS BLADES (sparse for performance) ===
-    for (float x = -COURT_LENGTH - 8; x < COURT_LENGTH + 8; x += 1.2f) {
-        for (float z = -COURT_WIDTH - 8; z < COURT_WIDTH + 8; z += 1.2f) {
-            // Skip the court area - AUTOMATICALLY SYNCED!
-            if (x > -COURT_LENGTH/2 - (MARGIN_X - 0.5f) && x < COURT_LENGTH/2 + (MARGIN_X - 0.5f) &&
-                z > -COURT_WIDTH/2 - (MARGIN_Z - 0.5f) && z < COURT_WIDTH/2 + (MARGIN_Z - 0.5f)) {
-                continue;
-            }
-            
-            // Wind sway calculation
-            float swayX = sin(windTime * 2.0f + x * 0.3f + z * 0.2f) * windStrength * 0.15f;
-            float swayZ = cos(windTime * 1.5f + x * 0.2f + z * 0.3f) * windStrength * 0.1f;
-            
-            // Vary grass blade color
-            float colorVar = sin(x * 10 + z * 10) * 0.08f;
-            glColor3f(0.28f + colorVar, 0.6f + colorVar, 0.28f + colorVar);
-            
-            glPushMatrix();
-            glTranslatef(x, 0, z);
-            glRotatef(swayX * 5.0f, 0, 0, 1);
-            glRotatef(swayZ * 5.0f, 1, 0, 0);
-            
-            // Grass blade
-            glPushMatrix();
-            glTranslatef(swayX, 0.12f, swayZ);
-            glScalef(0.03f, 0.24f, 0.03f);
-            glutSolidCube(1.0f);
-            glPopMatrix();
-            
-            glPopMatrix();
-        }
-    }
+    // === DECORATIVE GRASS BLADES REMOVED AS REQUESTED ===
+    // (This creates a cleaner, flatter park ground appearance)
 }
 
 // Draw running track around the court (outside the fence)
