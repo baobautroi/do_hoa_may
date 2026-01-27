@@ -2248,13 +2248,10 @@ void display() {
     drawSignpost(COURT_LENGTH/2 + 6.5f, COURT_WIDTH/2 + 6, "Pickleball");
     drawSignpost(-COURT_LENGTH/2 - 7.5f, COURT_WIDTH/2 + 5, "Park Rules");
     
-    // === FOUNTAINS - Beautiful water features! ===
-    // Main central fountain behind court
-    drawFountain(0, COURT_WIDTH/2 + 7);
-    
-    // Additional decorative fountains
-    drawFountain(-COURT_LENGTH/2 - 8, 0);
-    drawFountain(COURT_LENGTH/2 + 8, 0);
+    // === FOUNTAINS REMOVED AS REQUESTED ===
+    // drawFountain(0, COURT_WIDTH/2 + 7);
+    // drawFountain(-COURT_LENGTH/2 - 8, 0);
+    // drawFountain(COURT_LENGTH/2 + 8, 0);
     
     // === LARGE GARDEN BEDS - Beautiful flower beds! ===
     // Corner garden beds (large, prominent)
