@@ -336,7 +336,8 @@ void drawTree(float x, float z) {
         glColor3f(0.55f, 0.35f, 0.2f);  // Bright brown
         
         glPushMatrix();
-        glTranslatef(0, 1.5f, 0);
+        // Remove offset so tree starts from ground (y=0)
+        // glTranslatef(0, 1.5f, 0); 
         glRotatef(-90, 1, 0, 0);
         GLUquadric* quad = gluNewQuadric();
         gluCylinder(quad, 0.35f, 0.25f, 3.0f, 16, 4);
@@ -1729,6 +1730,22 @@ void drawRunningTrack() {
     glEnd();
     
     glDisable(GL_LINE_STIPPLE);
+    
+    // === Outer White Boundary Line ===
+    // Draw a solid white line at the outermost edge of the track
+    glColor3f(1.0f, 1.0f, 1.0f);
+    glLineWidth(2.0f);
+    
+    float outerX = COURT_LENGTH/2 + trackOffset + trackWidth;
+    float outerZ = COURT_WIDTH/2 + trackOffset + trackWidth;
+    
+    glBegin(GL_LINE_LOOP);
+    // Four outer corners
+    glVertex3f(-outerX, 0.01f, -outerZ); // Bottom-left
+    glVertex3f(outerX, 0.01f, -outerZ);  // Bottom-right
+    glVertex3f(outerX, 0.01f, outerZ);   // Top-right
+    glVertex3f(-outerX, 0.01f, outerZ);  // Top-left
+    glEnd();
     
     glPopMatrix();
 }
