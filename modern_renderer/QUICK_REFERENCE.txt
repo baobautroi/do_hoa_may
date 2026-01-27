@@ -1,0 +1,181 @@
+╔═══════════════════════════════════════════════════════════════════╗
+║         MODERN OPENGL 3.3+ RENDERER - QUICK REFERENCE             ║
+╚═══════════════════════════════════════════════════════════════════╝
+
+📦 DEPENDENCIES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Install via MSYS2:
+    pacman -S mingw-w64-x86_64-glfw
+    pacman -S mingw-w64-x86_64-glew
+    pacman -S mingw-w64-x86_64-glm
+    pacman -S mingw-w64-x86_64-assimp
+
+🔨 COMPILE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+g++ example_modern_renderer.cpp ModernRenderer.cpp \
+    -o modern_pickleball.exe \
+    -lglfw3 -lglew32 -lopengl32 -lassimp \
+    -Imodern_renderer -std=c++11
+
+🎨 SHADERS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Vertex Shaders:
+    ✓ blinn_phong.vert  - Main rendering
+    ✓ shadow_map.vert   - Shadow depth
+    ✓ skybox.vert       - Skybox
+
+Fragment Shaders:
+    ✓ blinn_phong.frag  - Blinn-Phong + Normal Map + Shadows + Fog
+    ✓ shadow_map.frag   - Depth only
+    ✓ skybox.frag       - Cubemap sampling
+
+📝 CODE STRUCTURE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+┌──────────────────────────────────────────────────────────────┐
+│  ModernRenderer                                              │
+├──────────────────────────────────────────────────────────────┤
+│  + initialize()           - Setup OpenGL, shaders, FBOs      │
+│  + setupShadowMap()       - Create shadow framebuffer        │
+│  + setupSkybox()          - Load cubemap textures            │
+│  + renderScene()          - Main render loop                 │
+│  + renderMesh()           - Render single mesh               │
+│  + setCamera()            - Set active camera                │
+│  + setLight()             - Configure directional light      │
+│  + setFog()               - Configure fog parameters         │
+└──────────────────────────────────────────────────────────────┘
+
+┌──────────────────────────────────────────────────────────────┐
+│  Camera                                                      │
+├──────────────────────────────────────────────────────────────┤
+│  + getViewMatrix()        - Get view transform               │
+│  + processKeyboard()      - WASD movement                    │
+│  + processMouseMovement() - Look around                      │
+│  + processMouseScroll()   - Zoom (FOV)                       │
+└──────────────────────────────────────────────────────────────┘
+
+┌──────────────────────────────────────────────────────────────┐
+│  Mesh                                                        │
+├──────────────────────────────────────────────────────────────┤
+│  + positions              - Vertex positions                 │
+│  + normals                - Vertex normals                   │
+│  + texCoords              - Texture coordinates              │
+│  + tangents               - Tangent vectors (normal mapping) │
+│  + bitangents             - Bitangent vectors                │
+│  + indices                - Triangle indices                 │
+│  + material               - Material properties              │
+│  + setupMesh()            - Create VAO/VBO                   │
+│  + draw()                 - Render mesh                      │
+└──────────────────────────────────────────────────────────────┘
+
+⚙️  USAGE EXAMPLE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// 1. Initialize
+ModernRenderer renderer(1920, 1080);
+renderer.initialize();
+
+// 2. Setup camera
+Camera camera(glm::vec3(0, 10, 20));
+renderer.setCamera(&camera);
+
+// 3. Setup sun light
+DirectionalLight sun;
+sun.direction = glm::vec3(-0.3f, -1.0f, -0.3f);
+sun.diffuse = glm::vec3(0.9f, 0.9f, 0.8f);
+renderer.setLight(sun);
+
+// 4. Setup fog
+renderer.setFog(glm::vec3(0.7f, 0.8f, 0.9f), 0.015f, 1.5f);
+
+// 5. Setup skybox
+std::vector<std::string> skyboxFaces = {
+    "textures/skybox/right.jpg",
+    "textures/skybox/left.jpg",
+    "textures/skybox/top.jpg",
+    "textures/skybox/bottom.jpg",
+    "textures/skybox/front.jpg",
+    "textures/skybox/back.jpg"
+};
+renderer.setupSkybox(skyboxFaces);
+
+// 6. Load models and render
+renderer.renderScene(sceneMeshes);
+
+🎯 MATERIAL SETUP
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Material material;
+material.diffuseMap = loadTexture("wood_diffuse.jpg");
+material.specularMap = loadTexture("wood_specular.jpg");
+material.normalMap = loadTexture("wood_normal.jpg");
+material.shininess = 64.0f;
+material.hasNormalMap = true;
+
+mesh.material = material;
+
+💡 FEATURES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✓ Blinn-Phong Shading      - Realistic specular highlights
+✓ Normal Mapping           - High detail surfaces
+✓ Shadow Mapping (PCF)     - Soft, realistic shadows
+✓ Skybox                   - Environment cubemap
+✓ Exponential Fog          - Atmospheric depth
+✓ Modern Architecture      - VBO/VAO, Shaders, FBO
+
+🔧 CONTROLS (Example App)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+W/A/S/D     - Move camera
+Mouse       - Look around
+Scroll      - Zoom (FOV)
+ESC         - Exit
+
+📊 PERFORMANCE TIPS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✓ Use lower shadow map resolution (1024x1024 instead of 2048x2048)
+✓ Reduce PCF kernel size (3x3 instead of 5x5)
+✓ Frustum culling for off-screen objects
+✓ Level of Detail (LOD) for distant objects
+✓ Texture compression (DXT1/DXT5)
+
+🐛 COMMON ISSUES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+❌ Black screen
+   → Check shader compilation errors
+   → Ensure shaders in correct path
+   → Verify GLEW initialization
+
+❌ No shadows
+   → Check shadow FBO creation
+   → Verify light direction
+   → Check bias parameter
+
+❌ Textures not loading
+   → Check stb_image.h included
+   → Verify texture paths
+   → Check texture format (RGB vs RGBA)
+
+📁 FILE STRUCTURE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+modern_renderer/
+├── Shader.h                - Shader management
+├── ModernRenderer.h/.cpp   - Main renderer
+├── example_modern_renderer.cpp
+├── README.md
+├── CMakeLists.txt
+└── shaders/
+    ├── blinn_phong.vert
+    ├── blinn_phong.frag
+    ├── shadow_map.vert
+    ├── shadow_map.frag
+    ├── skybox.vert
+    └── skybox.frag
+
+🚀 GET STARTED
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+1. Install dependencies
+2. Compile: g++ ... (see above)
+3. Place shaders in modern_renderer/shaders/
+4. Run: ./modern_pickleball.exe
+5. Load your models and enjoy!
+
+═══════════════════════════════════════════════════════════════════
+        Modern OpenGL 3.3+ - Professional Quality Rendering
+═══════════════════════════════════════════════════════════════════
