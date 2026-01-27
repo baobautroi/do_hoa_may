@@ -1,0 +1,95 @@
+╔═══════════════════════════════════════════════════════════════════╗
+║           ASSIMP MODEL LOADER - QUICK REFERENCE                   ║
+╚═══════════════════════════════════════════════════════════════════╝
+
+📦 CÀI ĐẶT:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  1. INSTALL_ASSIMP.bat        ← Double-click để cài Assimp
+  2. compile_with_assimp.bat   ← Compile project
+  3. RUN_GAME.bat              ← Chạy game
+
+🧪 TEST:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  1. compile_test.bat
+  2. test_model_loader.exe models/your_model.obj
+
+💻 CODE SỬ DỤNG:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  
+  // Khai báo
+  #include "ModelLoader.h"
+  ModelLoader treeModel;
+  
+  // Load
+  treeModel.loadModel("models/tree.obj");
+  
+  // Render
+  treeModel.render(x, y, z, scale);
+  
+  // Render với rotation
+  treeModel.render(x, y, z, scale, angle, rotX, rotY, rotZ);
+
+📥 TẢI MODEL:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  
+  Sketchfab   → sketchfab.com    (Chất lượng cao)
+  Free3D      → free3d.com       (Dễ tải)
+  CGTrader    → cgtrader.com     (Professional)
+  
+  Keywords: "low poly", "obj", "free", "cartoon"
+  
+  ✓ Low Poly (< 10k triangles)
+  ✓ Format OBJ
+  ✓ Có texture
+  ✓ Free license
+
+🐛 XỬ LÝ LỖI:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  ❌ "cannot find -lassimp"
+     → Chạy: INSTALL_ASSIMP.bat
+  
+  ❌ Model không hiển thị
+     → Check đường dẫn file .obj
+     → Điều chỉnh scale (quá lớn/nhỏ)
+     → Xem console output
+  
+  ❌ Model bị tối
+     → Enable lighting: glEnable(GL_LIGHTING);
+     → Tăng ambient light
+  
+  ❌ Model lộn ngược
+     → Xoay: model.render(x,y,z,s, 180,1,0,0);
+
+📁 CẤU TRÚC THƯ MỤC:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  
+  dohoa (2)/
+  ├── ModelLoader.h
+  ├── ModelLoader.cpp
+  ├── stb_image.h
+  ├── compile_with_assimp.bat
+  └── models/
+      ├── tree.obj
+      ├── paddle.obj
+      └── player.obj
+
+🎯 WORKFLOW:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  
+  1. Download model (.obj) → Save to models/
+  2. Test: test_model_loader.exe models/model.obj
+  3. Tích hợp vào code (xem example_usage.cpp)
+  4. Compile: compile_with_assimp.bat
+  5. Run: RUN_GAME.bat
+
+📖 TÀI LIỆU:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  
+  README_ASSIMP.md      - Hướng dẫn tổng quan
+  ASSIMP_GUIDE.md       - Chi tiết đầy đủ
+  example_usage.cpp     - Code mẫu
+
+╔═══════════════════════════════════════════════════════════════════╗
+║  Tip: Bắt đầu với test_model_loader.exe để kiểm tra model trước! ║
+╚═══════════════════════════════════════════════════════════════════╝
