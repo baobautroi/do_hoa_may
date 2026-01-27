@@ -886,6 +886,7 @@ void drawCloud(float x, float y, float z, float scale) {
 void drawArchGate(float x, float z) {
     glPushMatrix();
     glTranslatef(x, 0, z);
+    glScalef(1.5f, 1.5f, 1.5f); // Scale entire gate by 1.5x
     
     // Gate parameters
     float gateWidth = 8.0f;        // Total width of the arch
