@@ -331,7 +331,7 @@ void drawTree(float x, float z) {
         // Render 3D tree model with appropriate scale
         treeModel.render(0, 0, 0, 1.5f);  // Scale 1.5x for visibility
     } else {
-        // FALLBACK: Original geometric tree
+        // FALLBACK: Original geometric treed
         // Trunk - BRIGHT BROWN
         glColor3f(0.55f, 0.35f, 0.2f);  // Bright brown
         
@@ -1864,16 +1864,16 @@ void display() {
     
     // === TREES - Lush forest-like environment ===
     // Corner trees (large, prominent)
-    drawTree(-COURT_LENGTH/2 - 4, -COURT_WIDTH/2 - 4);
-    drawTree(-COURT_LENGTH/2 - 4, COURT_WIDTH/2 + 4);
-    drawTree(COURT_LENGTH/2 + 4, -COURT_WIDTH/2 - 4);
-    drawTree(COURT_LENGTH/2 + 4, COURT_WIDTH/2 + 4);
+    // drawTree(-COURT_LENGTH/2 - 4, -COURT_WIDTH/2 - 4);
+    // drawTree(-COURT_LENGTH/2 - 4, COURT_WIDTH/2 + 4);
+    // drawTree(COURT_LENGTH/2 + 4, -COURT_WIDTH/2 - 4);
+    // drawTree(COURT_LENGTH/2 + 4, COURT_WIDTH/2 + 4);
     
     // Perimeter trees (creating a natural border)
     drawTree(-COURT_LENGTH/2 - 6, 0);
     drawTree(COURT_LENGTH/2 + 6, 0);
-    drawTree(0, -COURT_WIDTH/2 - 6);
-    drawTree(0, COURT_WIDTH/2 + 6);
+    // drawTree(0, -COURT_WIDTH/2 - 6);
+    // drawTree(0, COURT_WIDTH/2 + 6);
     
     // Additional decorative trees - MORE for park feel!
     drawTree(-COURT_LENGTH/2 - 7, -COURT_WIDTH/2 + 2);
@@ -1896,8 +1896,8 @@ void display() {
     // Clustered trees for natural look
     drawTree(-COURT_LENGTH/2 - 8, -COURT_WIDTH/2);
     drawTree(COURT_LENGTH/2 + 8, COURT_WIDTH/2);
-    drawTree(-3, -COURT_WIDTH/2 - 7);
-    drawTree(3, COURT_WIDTH/2 + 7);
+    // drawTree(-3, -COURT_WIDTH/2 - 7);
+    // drawTree(3, COURT_WIDTH/2 + 7);
     
     // === BUSHES - Abundant low greenery ===
     // Corner bushes
@@ -1927,8 +1927,8 @@ void display() {
     // Random scattered bushes for natural look
     drawBush(-COURT_LENGTH/2 - 6.5f, -COURT_WIDTH/2 - 4.5f);
     drawBush(COURT_LENGTH/2 + 6.5f, COURT_WIDTH/2 + 4.5f);
-    drawBush(-2.5f, -COURT_WIDTH/2 - 6);
-    drawBush(2.5f, COURT_WIDTH/2 + 6);
+    // drawBush(-2.5f, -COURT_WIDTH/2 - 6);
+    // drawBush(2.5f, COURT_WIDTH/2 + 6);
     drawBush(-COURT_LENGTH/2 - 7.5f, 1);
     drawBush(COURT_LENGTH/2 + 7.5f, -1);
     
