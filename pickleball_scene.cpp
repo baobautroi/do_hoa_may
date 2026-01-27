@@ -29,12 +29,12 @@
 
 // Constants
 const float PI = 3.14159265359f;
-const float COURT_LENGTH = 13.41f;  // 44 feet in meters
-const float COURT_WIDTH = 6.10f;    // 20 feet in meters
+const float COURT_LENGTH = 20.115f;  // Scaled 1.5x (was 13.41f)
+const float COURT_WIDTH = 9.15f;     // Scaled 1.5x (was 6.10f)
 
 // Out-of-bounds Area Margins (Global Settings)
 const float MARGIN_X = 3.0f;  // Side margins (meters) - UNIFORM
-const float MARGIN_Z = 6.0f;  // End margins (meters) - SCALED TO MATCH
+const float MARGIN_Z = 10.0f;  // End margins (meters) - SCALED TO MATCH
 
 // Global variables
 float timeOfDay = 0.5f;  // 0=midnight, 0.5=noon, 1.0=midnight again
