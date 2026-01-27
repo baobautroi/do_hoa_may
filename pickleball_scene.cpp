@@ -1668,7 +1668,8 @@ void display() {
     
     // Draw park scenery - BEAUTIFUL ENHANCED PARK ATMOSPHERE! 🌳🌸
     
-    // === PATHWAYS - Well-connected walking paths ===
+    // === PATHWAYS - REMOVED AS REQUESTED ===
+    /*
     // Main path around the court
     drawPath(0, -COURT_WIDTH/2 - 2.5f, 2.0f, 20.0f, 0);  // Bottom path
     drawPath(0, COURT_WIDTH/2 + 2.5f, 2.0f, 20.0f, 0);   // Top path
@@ -1678,6 +1679,7 @@ void display() {
     // Diagonal decorative paths
     drawPath(-COURT_LENGTH/2 - 5, -COURT_WIDTH/2 - 5, 1.5f, 8.0f, 45);
     drawPath(COURT_LENGTH/2 + 5, COURT_WIDTH/2 + 5, 1.5f, 8.0f, 45);
+    */
     
     // === FENCES - Beautiful wooden fencing ===
     // Bottom fence line
