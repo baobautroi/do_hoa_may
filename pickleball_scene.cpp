@@ -1010,19 +1010,20 @@ void drawArchGate(float x, float z) {
     float wingThickness = 0.3f;    // Thickness of the gate wall
     float openingWidth = 1.5f;     // Width of the walkway opening
     float openingHeight = 2.0f;    // Height of the walkway opening
+    float overlap = 0.7f;         // Move closer to main gate
     
     // === LEFT RECTANGULAR GATE (with opening) ===
     
     // Left gate - Left pillar
     glPushMatrix();
-    glTranslatef(-gateWidth/2 - wingLength + pillarWidth/2, wingHeight/2, 0);
+    glTranslatef(-gateWidth/2 - wingLength + pillarWidth/2 + overlap, wingHeight/2, 0);
     glScalef(pillarWidth, wingHeight, wingThickness);
     glutSolidCube(1.0f);
     glPopMatrix();
     
     // Left gate - Right pillar (next to main gate)
     glPushMatrix();
-    glTranslatef(-gateWidth/2 - pillarWidth/2, wingHeight/2, 0);
+    glTranslatef(-gateWidth/2 - pillarWidth/2 + overlap, wingHeight/2, 0);
     glScalef(pillarWidth, wingHeight, wingThickness);
     glutSolidCube(1.0f);
     glPopMatrix();
@@ -1030,7 +1031,7 @@ void drawArchGate(float x, float z) {
     // Left gate - Top lintel (above opening)
     float lintelHeight = wingHeight - openingHeight;
     glPushMatrix();
-    glTranslatef(-gateWidth/2 - wingLength/2, wingHeight - lintelHeight/2, 0);
+    glTranslatef(-gateWidth/2 - wingLength/2 + overlap, wingHeight - lintelHeight/2, 0);
     glScalef(wingLength - pillarWidth, lintelHeight, wingThickness);
     glutSolidCube(1.0f);
     glPopMatrix();
@@ -1038,7 +1039,7 @@ void drawArchGate(float x, float z) {
     // Left gate - Bottom base (below opening)
     float baseHeight = 0.3f;
     glPushMatrix();
-    glTranslatef(-gateWidth/2 - wingLength/2, baseHeight/2, 0);
+    glTranslatef(-gateWidth/2 - wingLength/2 + overlap, baseHeight/2, 0);
     glScalef(wingLength - pillarWidth, baseHeight, wingThickness);
     glutSolidCube(1.0f);
     glPopMatrix();
@@ -1047,28 +1048,28 @@ void drawArchGate(float x, float z) {
     
     // Right gate - Left pillar (next to main gate)
     glPushMatrix();
-    glTranslatef(gateWidth/2 + pillarWidth/2, wingHeight/2, 0);
+    glTranslatef(gateWidth/2 + pillarWidth/2 - overlap, wingHeight/2, 0);
     glScalef(pillarWidth, wingHeight, wingThickness);
     glutSolidCube(1.0f);
     glPopMatrix();
     
     // Right gate - Right pillar
     glPushMatrix();
-    glTranslatef(gateWidth/2 + wingLength - pillarWidth/2, wingHeight/2, 0);
+    glTranslatef(gateWidth/2 + wingLength - pillarWidth/2 - overlap, wingHeight/2, 0);
     glScalef(pillarWidth, wingHeight, wingThickness);
     glutSolidCube(1.0f);
     glPopMatrix();
     
     // Right gate - Top lintel (above opening)
     glPushMatrix();
-    glTranslatef(gateWidth/2 + wingLength/2, wingHeight - lintelHeight/2, 0);
+    glTranslatef(gateWidth/2 + wingLength/2 - overlap, wingHeight - lintelHeight/2, 0);
     glScalef(wingLength - pillarWidth, lintelHeight, wingThickness);
     glutSolidCube(1.0f);
     glPopMatrix();
     
     // Right gate - Bottom base (below opening)
     glPushMatrix();
-    glTranslatef(gateWidth/2 + wingLength/2, baseHeight/2, 0);
+    glTranslatef(gateWidth/2 + wingLength/2 - overlap, baseHeight/2, 0);
     glScalef(wingLength - pillarWidth, baseHeight, wingThickness);
     glutSolidCube(1.0f);
     glPopMatrix();
@@ -1078,14 +1079,14 @@ void drawArchGate(float x, float z) {
     
     // Left gate cap
     glPushMatrix();
-    glTranslatef(-gateWidth/2 - wingLength/2, wingHeight + 0.1f, 0);
+    glTranslatef(-gateWidth/2 - wingLength/2 + overlap, wingHeight + 0.1f, 0);
     glScalef(wingLength + 0.2f, 0.2f, wingThickness + 0.1f);
     glutSolidCube(1.0f);
     glPopMatrix();
     
     // Right gate cap
     glPushMatrix();
-    glTranslatef(gateWidth/2 + wingLength/2, wingHeight + 0.1f, 0);
+    glTranslatef(gateWidth/2 + wingLength/2 - overlap, wingHeight + 0.1f, 0);
     glScalef(wingLength + 0.2f, 0.2f, wingThickness + 0.1f);
     glutSolidCube(1.0f);
     glPopMatrix();
