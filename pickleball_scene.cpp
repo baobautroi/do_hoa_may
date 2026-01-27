@@ -897,33 +897,36 @@ void drawArchGate(float x, float z) {
     // White color for the gate
     glColor3f(0.95f, 0.95f, 0.95f);
     
-    // === LEFT PILLAR ===
-    glPushMatrix();
-    glTranslatef(-gateWidth/2 + pillarWidth/2, gateHeight/2, 0);
-    glScalef(pillarWidth, gateHeight, pillarDepth);
-    glutSolidCube(1.0f);
-    glPopMatrix();
+    // // === LEFT PILLAR ===
+    // glPushMatrix();
+    // glTranslatef(-gateWidth/2 + pillarWidth/2, gateHeight/2, 0);
+    // glScalef(pillarWidth, gateHeight, pillarDepth);
+    // glutSolidCube(1.0f);
+    // glPopMatrix();
     
-    // === RIGHT PILLAR ===
-    glPushMatrix();
-    glTranslatef(gateWidth/2 - pillarWidth/2, gateHeight/2, 0);
-    glScalef(pillarWidth, gateHeight, pillarDepth);
-    glutSolidCube(1.0f);
-    glPopMatrix();
+    // // === RIGHT PILLAR ===
+    // glPushMatrix();
+    // glTranslatef(gateWidth/2 - pillarWidth/2, gateHeight/2, 0);
+    // glScalef(pillarWidth, gateHeight, pillarDepth);
+    // glutSolidCube(1.0f);
+    // glPopMatrix();
     
     // === PARABOLIC ARCH ===
     // Draw arch as series of small boxes forming a parabola
-    int numSegments = 40;
+    int numSegments = 80;  // INCREASED from 40 for smoother arch
     float archWidth = gateWidth - pillarWidth * 2;  // Width between pillars
     
     for (int i = 0; i <= numSegments; i++) {
         float t = (float)i / numSegments;  // 0 to 1
         float xPos = -archWidth/2 + t * archWidth;
         
-        // Parabolic equation: y = -a*x^2 + h
-        // Where h is max height, positioned at x=0
-        float normalizedX = (xPos / (archWidth/2));  // -1 to 1
-        float yPos = gateHeight * (1.0f - normalizedX * normalizedX * 0.3f);
+        // CORRECT PARABOLIC EQUATION: y = h - (h/r²) * x²
+        // Where: h = gateHeight (max height at center)
+        //        r = archWidth/2 (half-width, distance from center to edge)
+        //        x = xPos (horizontal position from center)
+        float r = archWidth / 2;
+        float h = gateHeight;
+        float yPos = h - (h / (r * r)) * (xPos * xPos);
         
         glPushMatrix();
         glTranslatef(xPos, yPos, 0);
@@ -933,13 +936,14 @@ void drawArchGate(float x, float z) {
         if (i < numSegments) {
             float nextT = (float)(i + 1) / numSegments;
             float nextX = -archWidth/2 + nextT * archWidth;
-            float nextNormX = (nextX / (archWidth/2));
-            float nextY = gateHeight * (1.0f - nextNormX * nextNormX * 0.3f);
+            // Use same parabolic formula for next point
+            float nextY = h - (h / (r * r)) * (nextX * nextX);
             angle = atan2(nextY - yPos, nextX - xPos) * 180.0f / PI;
         }
         
         glRotatef(angle, 0, 0, 1);
-        glScalef(archWidth/numSegments * 1.2f, archThickness, pillarDepth);
+        // IMPROVED: Wider boxes for seamless connection
+        glScalef(archWidth/numSegments * 1.5f, archThickness, pillarDepth);
         glutSolidCube(1.0f);
         glPopMatrix();
     }
@@ -949,6 +953,94 @@ void drawArchGate(float x, float z) {
     glPushMatrix();
     glTranslatef(0, 0.05f, 0);
     glScalef(gateWidth + 0.5f, 0.1f, pillarDepth + 0.3f);
+    glutSolidCube(1.0f);
+    glPopMatrix();
+    
+    // === SIDE RECTANGULAR GATES WITH OPENINGS ===
+    glColor3f(0.95f, 0.95f, 0.95f);  // Same white as pillars
+    
+    float wingLength = 3.0f;       // How far the gate extends
+    float wingHeight = 2.5f;       // Height of the side gate
+    float wingThickness = 0.3f;    // Thickness of the gate wall
+    float openingWidth = 1.5f;     // Width of the walkway opening
+    float openingHeight = 2.0f;    // Height of the walkway opening
+    
+    // === LEFT RECTANGULAR GATE (with opening) ===
+    
+    // Left gate - Left pillar
+    glPushMatrix();
+    glTranslatef(-gateWidth/2 - wingLength + pillarWidth/2, wingHeight/2, 0);
+    glScalef(pillarWidth, wingHeight, wingThickness);
+    glutSolidCube(1.0f);
+    glPopMatrix();
+    
+    // Left gate - Right pillar (next to main gate)
+    glPushMatrix();
+    glTranslatef(-gateWidth/2 - pillarWidth/2, wingHeight/2, 0);
+    glScalef(pillarWidth, wingHeight, wingThickness);
+    glutSolidCube(1.0f);
+    glPopMatrix();
+    
+    // Left gate - Top lintel (above opening)
+    float lintelHeight = wingHeight - openingHeight;
+    glPushMatrix();
+    glTranslatef(-gateWidth/2 - wingLength/2, wingHeight - lintelHeight/2, 0);
+    glScalef(wingLength - pillarWidth, lintelHeight, wingThickness);
+    glutSolidCube(1.0f);
+    glPopMatrix();
+    
+    // Left gate - Bottom base (below opening)
+    float baseHeight = 0.3f;
+    glPushMatrix();
+    glTranslatef(-gateWidth/2 - wingLength/2, baseHeight/2, 0);
+    glScalef(wingLength - pillarWidth, baseHeight, wingThickness);
+    glutSolidCube(1.0f);
+    glPopMatrix();
+    
+    // === RIGHT RECTANGULAR GATE (with opening) ===
+    
+    // Right gate - Left pillar (next to main gate)
+    glPushMatrix();
+    glTranslatef(gateWidth/2 + pillarWidth/2, wingHeight/2, 0);
+    glScalef(pillarWidth, wingHeight, wingThickness);
+    glutSolidCube(1.0f);
+    glPopMatrix();
+    
+    // Right gate - Right pillar
+    glPushMatrix();
+    glTranslatef(gateWidth/2 + wingLength - pillarWidth/2, wingHeight/2, 0);
+    glScalef(pillarWidth, wingHeight, wingThickness);
+    glutSolidCube(1.0f);
+    glPopMatrix();
+    
+    // Right gate - Top lintel (above opening)
+    glPushMatrix();
+    glTranslatef(gateWidth/2 + wingLength/2, wingHeight - lintelHeight/2, 0);
+    glScalef(wingLength - pillarWidth, lintelHeight, wingThickness);
+    glutSolidCube(1.0f);
+    glPopMatrix();
+    
+    // Right gate - Bottom base (below opening)
+    glPushMatrix();
+    glTranslatef(gateWidth/2 + wingLength/2, baseHeight/2, 0);
+    glScalef(wingLength - pillarWidth, baseHeight, wingThickness);
+    glutSolidCube(1.0f);
+    glPopMatrix();
+    
+    // === DECORATIVE TOP CAPS on gates ===
+    glColor3f(0.92f, 0.92f, 0.92f);  // Slightly darker for accent
+    
+    // Left gate cap
+    glPushMatrix();
+    glTranslatef(-gateWidth/2 - wingLength/2, wingHeight + 0.1f, 0);
+    glScalef(wingLength + 0.2f, 0.2f, wingThickness + 0.1f);
+    glutSolidCube(1.0f);
+    glPopMatrix();
+    
+    // Right gate cap
+    glPushMatrix();
+    glTranslatef(gateWidth/2 + wingLength/2, wingHeight + 0.1f, 0);
+    glScalef(wingLength + 0.2f, 0.2f, wingThickness + 0.1f);
     glutSolidCube(1.0f);
     glPopMatrix();
     
@@ -1361,8 +1453,8 @@ void drawGrassField() {
     glPushMatrix();
     
     // Draw ground in sections with different colors for variety
-    for (float x = -COURT_LENGTH - 10; x < COURT_LENGTH + 10; x += 2.0f) {
-        for (float z = -COURT_WIDTH - 10; z < COURT_WIDTH + 10; z += 2.0f) {
+    for (float x = -COURT_LENGTH - 12; x < COURT_LENGTH + 12; x += 2.0f) {
+        for (float z = -COURT_WIDTH - 12; z < COURT_WIDTH + 12; z += 2.0f) {
             // Skip the court area - AUTOMATICALLY SYNCED with margins!
             // We subtract a small amount (0.2f) to ensure slight overlap (no gaps)
             if (x > -COURT_LENGTH/2 - (MARGIN_X - 0.2f) && x < COURT_LENGTH/2 + (MARGIN_X - 0.2f) &&
