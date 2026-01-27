@@ -32,6 +32,10 @@ const float PI = 3.14159265359f;
 const float COURT_LENGTH = 13.41f;  // 44 feet in meters
 const float COURT_WIDTH = 6.10f;    // 20 feet in meters
 
+// Out-of-bounds Area Margins (Global Settings)
+const float MARGIN_X = 3.0f;  // Side margins (meters) - UNIFORM
+const float MARGIN_Z = 6.0f;  // End margins (meters) - SCALED TO MATCH
+
 // Global variables
 float timeOfDay = 0.5f;  // 0=midnight, 0.5=noon, 1.0=midnight again
 
@@ -54,10 +58,10 @@ float targetArmSwing1 = 0.0f;
 float targetArmSwing2 = 0.0f;
 float smoothFactor = 0.15f;  // Interpolation speed
 
-// Camera variables
-float cameraDistance = 20.0f;
-float cameraAngle = 45.0f;
-float cameraHeight = 12.0f;
+// Camera variables - ADJUSTED for symmetrical view
+float cameraDistance = 25.0f;  // Increased for better overview
+float cameraAngle = 0.0f;      // Front view (was 45° diagonal)
+float cameraHeight = 15.0f;    // Higher for better perspective
 
 // Animation variables
 float playerSwing1 = 0.0f;
@@ -193,6 +197,27 @@ void drawCourt() {
     glPushMatrix();
     
     glColor3f(0.5f, 0.6f, 0.75f);  // Blue-gray court
+    
+    
+    // Draw Out-of-bounds area (Safe zone) - COVERS THE GAP
+    glPushMatrix();
+    glColor3f(0.45f, 0.65f, 0.85f); // Light blue safe zone
+    
+    // Use Global Constants for perfect sync with grass
+    float mx = MARGIN_X;
+    float mz = MARGIN_Z;
+    
+    glBegin(GL_QUADS);
+    glVertex3f(-COURT_LENGTH/2 - mx, -0.01f, -COURT_WIDTH/2 - mz);
+    glVertex3f(COURT_LENGTH/2 + mx, -0.01f, -COURT_WIDTH/2 - mz);
+    glVertex3f(COURT_LENGTH/2 + mx, -0.01f, COURT_WIDTH/2 + mz);
+    glVertex3f(-COURT_LENGTH/2 - mx, -0.01f, COURT_WIDTH/2 + mz);
+    glEnd();
+    glPopMatrix();
+    
+    
+    // Main Court Surface
+    glColor3f(0.3f, 0.4f, 0.65f);  // Darker Blue Royal Court
     
     glBegin(GL_QUADS);
     glVertex3f(-COURT_LENGTH/2, 0, -COURT_WIDTH/2);
@@ -857,6 +882,80 @@ void drawCloud(float x, float y, float z, float scale) {
     glPopMatrix();
 }
 
+// Draw realistic pickleball paddle face - flat oval/rectangular shape
+void drawPaddleFace(float width, float height, float thickness) {
+    const int segments = 24;
+    float halfW = width / 2.0f;
+    float halfH = height / 2.0f;
+    float halfT = thickness / 2.0f;
+    float cornerRadius = 0.08f;
+    
+    // Helper to get rounded rectangle point
+    auto getRoundedRectPoint = [&](int i, float& x, float& y) {
+        float quadrant = floor(i / (float)segments);
+        float localAngle = (i % segments) / (float)segments * PI / 2.0f;
+        
+        if (quadrant == 0) { // Top-right
+            x = (halfW - cornerRadius) + cornerRadius * cos(localAngle);
+            y = (halfH - cornerRadius) + cornerRadius * sin(localAngle);
+        } else if (quadrant == 1) { // Top-left  
+            x = -(halfW - cornerRadius) - cornerRadius * sin(localAngle);
+            y = (halfH - cornerRadius) + cornerRadius * cos(localAngle);
+        } else if (quadrant == 2) { // Bottom-left
+            x = -(halfW - cornerRadius) - cornerRadius * cos(localAngle);
+            y = -(halfH - cornerRadius) - cornerRadius * sin(localAngle);
+        } else { // Bottom-right
+            x = (halfW - cornerRadius) + cornerRadius * sin(localAngle);
+            y = -(halfH - cornerRadius) - cornerRadius * cos(localAngle);
+        }
+    };
+    
+    // Front face - flat with rounded corners
+    glBegin(GL_TRIANGLE_FAN);
+    glNormal3f(0, 0, 1);
+    glVertex3f(0, 0, halfT);
+    
+    for (int i = 0; i <= segments * 4; i++) {
+        float x, y;
+        getRoundedRectPoint(i, x, y);
+        glVertex3f(x, y, halfT);
+    }
+    glEnd();
+    
+    // Back face (mirror of front)
+    glBegin(GL_TRIANGLE_FAN);
+    glNormal3f(0, 0, -1);
+    glVertex3f(0, 0, -halfT);
+    
+    for (int i = segments * 4; i >= 0; i--) {
+        float x, y;
+        getRoundedRectPoint(i, x, y);
+        glVertex3f(x, y, -halfT);
+    }
+    glEnd();
+    
+    // Edge strip connecting front and back
+    glBegin(GL_QUAD_STRIP);
+    for (int i = 0; i <= segments * 4; i++) {
+        float x, y;
+        getRoundedRectPoint(i, x, y);
+        
+        // Approximate outward normal
+        float nx = x / halfW * 0.8f;
+        float ny = y / halfH * 0.8f;
+        float len = sqrt(nx*nx + ny*ny);
+        if (len > 0.01f) {
+            nx /= len;
+            ny /= len;
+        }
+        
+        glNormal3f(nx, ny, 0);
+        glVertex3f(x, y, halfT);
+        glVertex3f(x, y, -halfT);
+    }
+    glEnd();
+}
+
 // Draw detailed realistic player with animations
 void drawPlayer(float x, float z, PlayerState& state, bool isPlayer1) {
     glPushMatrix();
@@ -1046,8 +1145,12 @@ void drawPlayer(float x, float z, PlayerState& state, bool isPlayer1) {
     // Right arm (paddle arm) with swing animation
     glPushMatrix();
     glTranslatef(0.35f, 1.5f, 0);
-    glRotatef(state.armSwing, 1, 0, 0);  // Swing motion
-    glRotatef(20, 0, 0, 1);
+    
+    // More realistic arm positioning for pickleball
+    glRotatef(state.armSwing, 1, 0, 0);  // Swing motion (unchanged)
+    glRotatef(30, 0, 0, 1);     // Angle outward more (was 20)
+    glRotatef(-15, 0, 1, 0);    // Rotate arm forward slightly (NEW)
+    
     glTranslatef(0, -0.25f, 0);
     
     // Upper arm
@@ -1103,39 +1206,71 @@ void drawPlayer(float x, float z, PlayerState& state, bool isPlayer1) {
     
     glPushMatrix();
     glTranslatef(0, -0.38f, 0);
-    glRotatef(90, 1, 0, 0);
     
-    // Main paddle surface - slightly convex
-    glPushMatrix();
-    glScalef(0.42f, 0.52f, 0.12f);  // Wide, tall, slightly thick
-    glutSolidSphere(1.0f, 20, 20);
-    glPopMatrix();
+    // REALISTIC GRIP ANGLES
+    // Rotate to make paddle face forward (like holding a frying pan)
+    glRotatef(90, 1, 0, 0);    // First: make paddle perpendicular to arm
+    glRotatef(-20, 0, 1, 0);   // Second: tilt slightly inward (continental grip)
+    glRotatef(10, 1, 0, 0);    // Third: angle forward slightly (ready position)
     
-    // Edge guard (black rim)
-    //glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, paddleEdge);
-    glPushMatrix();
-    glScalef(0.43f, 0.53f, 0.13f);
-    glutWireSphere(1.0f, 20, 20);
-    glPopMatrix();
+    // Main paddle surface - REALISTIC FLAT FACE
+    glColor3f(0.98f, 0.35f, 0.15f);  // Bright orange-red paddle
+    drawPaddleFace(0.42f, 0.52f, 0.03f); // width, height, thin thickness
     
-    // Paddle texture lines (for realism)
+    // Edge guard (black rim outline)
+    glColor3f(0.15f, 0.15f, 0.15f);  // Dark edge
+    glLineWidth(3.0f);
+    
+    // Draw outline around paddle perimeter
+    const int outlineSegs = 24;
+    float halfW = 0.21f;  // 0.42 / 2
+    float halfH = 0.26f;  // 0.52 / 2
+    float cornerRadius = 0.08f;
+    
+    glBegin(GL_LINE_LOOP);
+    for (int i = 0; i < outlineSegs * 4; i++) {
+        float quadrant = floor(i / (float)outlineSegs);
+        float localAngle = (i % outlineSegs) / (float)outlineSegs * PI / 2.0f;
+        
+        float x, y;
+        if (quadrant == 0) { // Top-right
+            x = (halfW - cornerRadius) + cornerRadius * cos(localAngle);
+            y = (halfH - cornerRadius) + cornerRadius * sin(localAngle);
+        } else if (quadrant == 1) { // Top-left
+            x = -(halfW - cornerRadius) - cornerRadius * sin(localAngle);
+            y = (halfH - cornerRadius) + cornerRadius * cos(localAngle);
+        } else if (quadrant == 2) { // Bottom-left
+            x = -(halfW - cornerRadius) - cornerRadius * cos(localAngle);
+            y = -(halfH - cornerRadius) - cornerRadius * sin(localAngle);
+        } else { // Bottom-right
+            x = (halfW - cornerRadius) + cornerRadius * sin(localAngle);
+            y = -(halfH - cornerRadius) - cornerRadius * cos(localAngle);
+        }
+        
+        glVertex3f(x, y, 0.016f);  // Slightly in front
+    }
+    glEnd();
+    
+    // Optional: Honeycomb texture pattern
     glDisable(GL_LIGHTING);
-    glColor3f(0.1f, 0.1f, 0.1f);
+    glColor3f(0.2f, 0.2f, 0.2f);  // Dark gray pattern
     glLineWidth(1.0f);
-    // Vertical lines
-    for (float x = -0.3f; x <= 0.3f; x += 0.1f) {
-        glBegin(GL_LINES);
-        glVertex3f(x, -0.4f, 0.1f);
-        glVertex3f(x, 0.4f, 0.1f);
-        glEnd();
+    
+    // Simplified hexagon pattern
+    for (float py = -0.2f; py <= 0.2f; py += 0.08f) {
+        for (float px = -0.15f; px <= 0.15f; px += 0.07f) {
+            // Draw small hexagon
+            glBegin(GL_LINE_LOOP);
+            for (int h = 0; h < 6; h++) {
+                float angle = h * PI / 3.0f;
+                float hx = px + 0.02f * cos(angle);
+                float hy = py + 0.02f * sin(angle);
+                glVertex3f(hx, hy, 0.017f);
+            }
+            glEnd();
+        }
     }
-    // Horizontal lines
-    for (float y = -0.4f; y <= 0.4f; y += 0.1f) {
-        glBegin(GL_LINES);
-        glVertex3f(-0.3f, y, 0.1f);
-        glVertex3f(0.3f, y, 0.1f);
-        glEnd();
-    }
+    
     glEnable(GL_LIGHTING);
     
     glPopMatrix();  // End paddle face
@@ -1155,9 +1290,10 @@ void drawGrassField() {
     // Draw ground in sections with different colors for variety
     for (float x = -COURT_LENGTH - 10; x < COURT_LENGTH + 10; x += 2.0f) {
         for (float z = -COURT_WIDTH - 10; z < COURT_WIDTH + 10; z += 2.0f) {
-            // Skip the court area
-            if (x > -COURT_LENGTH/2 - 1 && x < COURT_LENGTH/2 + 1 &&
-                z > -COURT_WIDTH/2 - 1 && z < COURT_WIDTH/2 + 1) {
+            // Skip the court area - AUTOMATICALLY SYNCED with margins!
+            // We subtract a small amount (0.2f) to ensure slight overlap (no gaps)
+            if (x > -COURT_LENGTH/2 - (MARGIN_X - 0.2f) && x < COURT_LENGTH/2 + (MARGIN_X - 0.2f) &&
+                z > -COURT_WIDTH/2 - (MARGIN_Z - 0.2f) && z < COURT_WIDTH/2 + (MARGIN_Z - 0.2f)) {
                 continue;
             }
             
@@ -1192,9 +1328,9 @@ void drawGrassField() {
     // === DRAW DECORATIVE GRASS BLADES (sparse for performance) ===
     for (float x = -COURT_LENGTH - 8; x < COURT_LENGTH + 8; x += 1.2f) {
         for (float z = -COURT_WIDTH - 8; z < COURT_WIDTH + 8; z += 1.2f) {
-            // Skip the court area
-            if (x > -COURT_LENGTH/2 - 1 && x < COURT_LENGTH/2 + 1 &&
-                z > -COURT_WIDTH/2 - 1 && z < COURT_WIDTH/2 + 1) {
+            // Skip the court area - AUTOMATICALLY SYNCED!
+            if (x > -COURT_LENGTH/2 - (MARGIN_X - 0.5f) && x < COURT_LENGTH/2 + (MARGIN_X - 0.5f) &&
+                z > -COURT_WIDTH/2 - (MARGIN_Z - 0.5f) && z < COURT_WIDTH/2 + (MARGIN_Z - 0.5f)) {
                 continue;
             }
             
