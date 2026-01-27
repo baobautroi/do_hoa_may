@@ -200,30 +200,44 @@ void drawCourt() {
     
     
     // Draw Out-of-bounds area (Safe zone) - COVERS THE GAP
-    glPushMatrix();
-    glColor3f(0.45f, 0.65f, 0.85f); // Light blue safe zone
+    // glPushMatrix();
+    // glColor3f(0.45f, 0.65f, 0.85f); // Light blue safe zone
     
-    // Use Global Constants for perfect sync with grass
-    float mx = MARGIN_X;
-    float mz = MARGIN_Z;
+    // // Use Global Constants for perfect sync with grass
+    // float mx = MARGIN_X;
+    // float mz = MARGIN_Z;
+    
+    // glBegin(GL_QUADS);
+    // glVertex3f(-COURT_LENGTH/2 - mx, -0.01f, -COURT_WIDTH/2 - mz);
+    // glVertex3f(COURT_LENGTH/2 + mx, -0.01f, -COURT_WIDTH/2 - mz);
+    // glVertex3f(COURT_LENGTH/2 + mx, -0.01f, COURT_WIDTH/2 + mz);
+    // glVertex3f(-COURT_LENGTH/2 - mx, -0.01f, COURT_WIDTH/2 + mz);
+    // glEnd();
+    // glPopMatrix();
+    
+    
+    // === OUT-OF-BOUNDS AREA (Light Blue) - Draw first ===
+    // This creates a larger light blue area that the dark blue court sits on top of
+    float OOB_MARGIN_X = 3.0f;  // Extra margin beyond main court
+    float OOB_MARGIN_Z = 3.0f;  // Extra margin beyond main court
+    
+    glColor3f(0.5f, 0.65f, 0.85f);  // Light Blue (Out-of-Bounds area)
     
     glBegin(GL_QUADS);
-    glVertex3f(-COURT_LENGTH/2 - mx, -0.01f, -COURT_WIDTH/2 - mz);
-    glVertex3f(COURT_LENGTH/2 + mx, -0.01f, -COURT_WIDTH/2 - mz);
-    glVertex3f(COURT_LENGTH/2 + mx, -0.01f, COURT_WIDTH/2 + mz);
-    glVertex3f(-COURT_LENGTH/2 - mx, -0.01f, COURT_WIDTH/2 + mz);
+    glVertex3f(-COURT_LENGTH/2 - OOB_MARGIN_X, 0.005, -COURT_WIDTH/2 - OOB_MARGIN_Z);
+    glVertex3f(COURT_LENGTH/2 + OOB_MARGIN_X, 0.005, -COURT_WIDTH/2 - OOB_MARGIN_Z);
+    glVertex3f(COURT_LENGTH/2 + OOB_MARGIN_X, 0.005, COURT_WIDTH/2 + OOB_MARGIN_Z);
+    glVertex3f(-COURT_LENGTH/2 - OOB_MARGIN_X, 0.005, COURT_WIDTH/2 + OOB_MARGIN_Z);
     glEnd();
-    glPopMatrix();
     
-    
-    // Main Court Surface
+    // === MAIN COURT SURFACE (Dark Blue) - Draw on top ===
     glColor3f(0.3f, 0.4f, 0.65f);  // Darker Blue Royal Court
     
     glBegin(GL_QUADS);
-    glVertex3f(-COURT_LENGTH/2, 0, -COURT_WIDTH/2);
-    glVertex3f(COURT_LENGTH/2, 0, -COURT_WIDTH/2);
-    glVertex3f(COURT_LENGTH/2, 0, COURT_WIDTH/2);
-    glVertex3f(-COURT_LENGTH/2, 0, COURT_WIDTH/2);
+    glVertex3f(-COURT_LENGTH/2, 0.01, -COURT_WIDTH/2);
+    glVertex3f(COURT_LENGTH/2, 0.01, -COURT_WIDTH/2);
+    glVertex3f(COURT_LENGTH/2, 0.01, COURT_WIDTH/2);
+    glVertex3f(-COURT_LENGTH/2, 0.01, COURT_WIDTH/2);
     glEnd();
     
     // White lines - BRIGHT
@@ -1506,10 +1520,10 @@ void drawGrassField() {
         for (float z = -COURT_WIDTH - 12; z < COURT_WIDTH + 12; z += 2.0f) {
             // Skip the court area - AUTOMATICALLY SYNCED with margins!
             // We subtract a small amount (0.2f) to ensure slight overlap (no gaps)
-            if (x > -COURT_LENGTH/2 - (MARGIN_X - 0.2f) && x < COURT_LENGTH/2 + (MARGIN_X - 0.2f) &&
-                z > -COURT_WIDTH/2 - (MARGIN_Z - 0.2f) && z < COURT_WIDTH/2 + (MARGIN_Z - 0.2f)) {
-                continue;
-            }
+            // if (x > -COURT_LENGTH/2 - (MARGIN_X - 0.2f) && x < COURT_LENGTH/2 + (MARGIN_X - 0.2f) &&
+            //     z > -COURT_WIDTH/2 - (MARGIN_Z - 0.2f) && z < COURT_WIDTH/2 + (MARGIN_Z - 0.2f)) {
+            //     continue;
+            // }
             
             // Determine ground type based on position
             float distFromCenter = sqrt(x*x + z*z);
@@ -2273,25 +2287,25 @@ void display() {
     drawGardenBed(0, COURT_WIDTH/2 + 8.5f, 5.0f, 1.5f);
     
     // === CIRCULAR FLOWER PATCHES - Round decorative gardens ===
-    // Main circular patches (highly visible)
-    drawCircularFlowerPatch(-COURT_LENGTH/2 - 8.5f, -COURT_WIDTH/2 - 5.5f, 0.8f);
-    drawCircularFlowerPatch(COURT_LENGTH/2 + 8.5f, COURT_WIDTH/2 + 5.5f, 0.8f);
+    // // Main circular patches (highly visible)
+    // drawCircularFlowerPatch(-COURT_LENGTH/2 - 8.5f, -COURT_WIDTH/2 - 5.5f, 0.8f);
+    // drawCircularFlowerPatch(COURT_LENGTH/2 + 8.5f, COURT_WIDTH/2 + 5.5f, 0.8f);
     
-    // Medium circular patches
-    drawCircularFlowerPatch(-COURT_LENGTH/2 - 6, -COURT_WIDTH/2 + 1, 0.6f);
-    drawCircularFlowerPatch(COURT_LENGTH/2 + 6, COURT_WIDTH/2 - 1, 0.6f);
-    drawCircularFlowerPatch(-COURT_LENGTH/2 - 3.5f, -COURT_WIDTH/2 - 5, 0.5f);
-    drawCircularFlowerPatch(COURT_LENGTH/2 + 3.5f, COURT_WIDTH/2 + 5, 0.5f);
+    // // Medium circular patches
+    // drawCircularFlowerPatch(-COURT_LENGTH/2 - 6, -COURT_WIDTH/2 + 1, 0.6f);
+    // drawCircularFlowerPatch(COURT_LENGTH/2 + 6, COURT_WIDTH/2 - 1, 0.6f);
+    // drawCircularFlowerPatch(-COURT_LENGTH/2 - 3.5f, -COURT_WIDTH/2 - 5, 0.5f);
+    // drawCircularFlowerPatch(COURT_LENGTH/2 + 3.5f, COURT_WIDTH/2 + 5, 0.5f);
     
-    // Small accent patches
-    drawCircularFlowerPatch(-COURT_LENGTH/2 - 9, COURT_WIDTH/2 + 2, 0.5f);
-    drawCircularFlowerPatch(COURT_LENGTH/2 + 9, -COURT_WIDTH/2 - 2, 0.5f);
-    drawCircularFlowerPatch(-2, -COURT_WIDTH/2 - 8.5f, 0.4f);
-    drawCircularFlowerPatch(2, COURT_WIDTH/2 + 9, 0.4f);
+    // // Small accent patches
+    // drawCircularFlowerPatch(-COURT_LENGTH/2 - 9, COURT_WIDTH/2 + 2, 0.5f);
+    // drawCircularFlowerPatch(COURT_LENGTH/2 + 9, -COURT_WIDTH/2 - 2, 0.5f);
+    // drawCircularFlowerPatch(-2, -COURT_WIDTH/2 - 8.5f, 0.4f);
+    // drawCircularFlowerPatch(2, COURT_WIDTH/2 + 9, 0.4f);
     
-    // Additional scattered patches for natural look
-    drawCircularFlowerPatch(-COURT_LENGTH/2 - 5, COURT_WIDTH/2 + 6, 0.45f);
-    drawCircularFlowerPatch(COURT_LENGTH/2 + 5, -COURT_WIDTH/2 - 6, 0.45f);
+    // // Additional scattered patches for natural look
+    // drawCircularFlowerPatch(-COURT_LENGTH/2 - 5, COURT_WIDTH/2 + 6, 0.45f);
+    // drawCircularFlowerPatch(COURT_LENGTH/2 + 5, -COURT_WIDTH/2 - 6, 0.45f);
     
     // === PICNIC TABLES - Park seating and gathering areas ===
     // Main picnic area (back of court)
@@ -2449,14 +2463,40 @@ void specialKeys(int key, int x, int y) {
 void init() {
     glEnable(GL_DEPTH_TEST);
     
-    // ENABLE lighting for proper illumination!
+    // === ENHANCED LIGHTING SETUP (Phong/Blinn-Phong) ===
     glEnable(GL_LIGHTING);
     glEnable(GL_LIGHT0);
     glEnable(GL_COLOR_MATERIAL);
     glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
     
+    // Smooth shading for better gradients
     glShadeModel(GL_SMOOTH);
     glEnable(GL_NORMALIZE);  // Normalize normals for correct lighting
+    
+    // Set up light properties (will be updated in setupLighting)
+    GLfloat lightAmbient[] = {0.3f, 0.3f, 0.3f, 1.0f};   // Ambient light
+    GLfloat lightDiffuse[] = {0.8f, 0.8f, 0.7f, 1.0f};   // Main light color
+    GLfloat lightSpecular[] = {0.5f, 0.5f, 0.5f, 1.0f};  // Specular highlights
+    glLightfv(GL_LIGHT0, GL_AMBIENT, lightAmbient);
+    glLightfv(GL_LIGHT0, GL_DIFFUSE, lightDiffuse);
+    glLightfv(GL_LIGHT0, GL_SPECULAR, lightSpecular);
+    
+    // Set default material specularity (shiny objects)
+    GLfloat matSpecular[] = {0.3f, 0.3f, 0.3f, 1.0f};
+    GLfloat matShininess[] = {32.0f};
+    glMaterialfv(GL_FRONT, GL_SPECULAR, matSpecular);
+    glMaterialfv(GL_FRONT, GL_SHININESS, matShininess);
+    
+    // === ANTI-ALIASING ===
+    #ifndef GL_MULTISAMPLE
+    #define GL_MULTISAMPLE 0x809D  // OpenGL 1.3+ extension
+    #endif
+    glEnable(GL_MULTISAMPLE);  // MSAA for smooth edges
+    glEnable(GL_LINE_SMOOTH);  // Smooth lines
+    glEnable(GL_POINT_SMOOTH); // Smooth points
+    glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
+    glHint(GL_POINT_SMOOTH_HINT, GL_NICEST);
+    glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST);
     
     // Enable alpha blending for transparency
     glEnable(GL_BLEND);
@@ -2484,9 +2524,10 @@ void init() {
 // Main function
 int main(int argc, char** argv) {
     glutInit(&argc, argv);
-    glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
+    // Enable MSAA (Anti-aliasing) for smooth edges
+    glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH | GLUT_MULTISAMPLE);
     glutInitWindowSize(1280, 720);
-    glutCreateWindow("Pickleball Playground Scene");
+    glutCreateWindow("Pickleball Playground Scene - Enhanced Graphics");
     
     init();
     
