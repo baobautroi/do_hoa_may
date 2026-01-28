@@ -3112,7 +3112,7 @@ void updateWalkers() {
     float angleRad = (walker1.angle - 45) * PI / 180.0f; // 45 degrees offset
     dogPosX = walker1.posX - cos(angleRad) * dogOffsetDistance;
     dogPosZ = walker1.posZ - sin(angleRad) * dogOffsetDistance;
-    dogAngle = walker1.angle; // Dog faces same direction as walker1
+    dogAngle = walker1.angle - 90.0f; // Correct orientation: Dog faces movement direction
 }
 
 // Display function
