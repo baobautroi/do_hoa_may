@@ -92,6 +92,29 @@ struct PlayerState {
 PlayerState player1State = {0, 0, 0, 0, 0, -COURT_LENGTH/4, 0, -COURT_LENGTH/4, 0, 0.08f};
 PlayerState player2State = {0, 0, 0, 0, 0, COURT_LENGTH/4, 0, COURT_LENGTH/4, 0, 0.08f};
 
+// Walker animation states (people walking/jogging on track)
+struct WalkerState {
+    float posX, posZ;        // Current position
+    float angle;             // Direction angle (0-360)
+    float speed;             // Walking/jogging speed
+    float legAngle1, legAngle2;
+    float armSwing1, armSwing2;
+    int pathSegment;         // Which segment of track (0=bottom, 1=right, 2=top, 3=left)
+    float pathProgress;      // Progress along current segment (0-1)
+};
+
+// Initialize 4 walkers on different parts of the track
+// Track offset = 9.0f, trackWidth = 3.0f, middle of track = 10.5f from center
+WalkerState walker1 = {-COURT_LENGTH/2 - 10.5f, -COURT_WIDTH/2 - 10.5f, 0, 0.04f, 0, 0, 0, 0, 3, 0.0f};  // Person with dog
+WalkerState walker2 = {COURT_LENGTH/2 + 10.5f, -COURT_WIDTH/2 - 10.0f, 180, 0.04f, 0, 0, 0, 0, 0, 0.5f}; // Walking couple (person 1 - left)
+WalkerState walker3 = {COURT_LENGTH/2 + 10.5f, -COURT_WIDTH/2 - 11.0f, 180, 0.04f, 0, 0, 0, 0, 0, 0.5f}; // Walking couple (person 2 - right)
+WalkerState walker4 = {-COURT_LENGTH/2 - 10.5f, COURT_WIDTH/2 + 10.5f, 270, 0.04f, 0, 0, 0, 0, 2, 0.7f}; // Walker (same speed)
+
+// Dog position (follows walker1)
+float dogPosX = walker1.posX + 1.5f;
+float dogPosZ = walker1.posZ;
+float dogAngle = walker1.angle; // Dog faces same direction as walker
+
 // Sky color structure
 struct SkyColor {
     float r, g, b;
@@ -2130,6 +2153,298 @@ void drawPlayer(float x, float z, PlayerState& state, bool isPlayer1) {
     glPopMatrix(); // End player
 }
 
+// Draw a person walking/jogging on the track (similar to drawPlayer but without paddle)
+void drawWalker(float x, float z, WalkerState& state, bool isMale, bool isJogging) {
+    // Draw shadow FIRST
+    drawEllipticalShadow(x, z, 0.4f, 0.35f, 0.4f);
+    
+    glPushMatrix();
+    glTranslatef(x, 0, z);
+    
+    // Face the direction of movement
+    glRotatef(state.angle, 0, 1, 0);
+    
+    // === LEGS ===
+    float legSwing = isJogging ? 35.0f : 20.0f; // Joggers have more leg movement
+    
+    // Shorts/pants color (vary by person)
+    if (isMale) {
+        glColor3f(0.2f, 0.3f, 0.5f); // Blue shorts
+    } else {
+        glColor3f(0.5f, 0.2f, 0.4f); // Purple/magenta
+    }
+    
+    // Left leg
+    glPushMatrix();
+    glTranslatef(-0.15f, 0.7f, 0);
+    glRotatef(state.legAngle1, 1, 0, 0);
+    glTranslatef(0, -0.35f, 0);
+    
+    // Thigh
+    glPushMatrix();
+    glScalef(0.18f, 0.4f, 0.18f);
+    glutSolidCube(1.0f);
+    glPopMatrix();
+    
+    // Knee
+    glColor3f(0.85f, 0.7f, 0.6f);
+    glPushMatrix();
+    glTranslatef(0, -0.2f, 0);
+    glutSolidSphere(0.12f, 12, 12);
+    glPopMatrix();
+    
+    // Lower leg
+    glPushMatrix();
+    glTranslatef(0, -0.5f, 0);
+    glScalef(0.15f, 0.35f, 0.15f);
+    glutSolidCube(1.0f);
+    glPopMatrix();
+    
+    // Shoe
+    glColor3f(0.9f, 0.9f, 0.9f);
+    glPushMatrix();
+    glTranslatef(0, -0.72f, 0.08f);
+    glScalef(0.18f, 0.1f, 0.25f);
+    glutSolidCube(1.0f);
+    glPopMatrix();
+    
+    glPopMatrix(); // End left leg
+    
+    // Right leg (similar structure)
+    if (isMale) {
+        glColor3f(0.2f, 0.3f, 0.5f);
+    } else {
+        glColor3f(0.5f, 0.2f, 0.4f);
+    }
+    
+    glPushMatrix();
+    glTranslatef(0.15f, 0.7f, 0);
+    glRotatef(state.legAngle2, 1, 0, 0);
+    glTranslatef(0, -0.35f, 0);
+    
+    glPushMatrix();
+    glScalef(0.18f, 0.4f, 0.18f);
+    glutSolidCube(1.0f);
+    glPopMatrix();
+    
+    glColor3f(0.85f, 0.7f, 0.6f);
+    glPushMatrix();
+    glTranslatef(0, -0.2f, 0);
+    glutSolidSphere(0.12f, 12, 12);
+    glPopMatrix();
+    
+    glPushMatrix();
+    glTranslatef(0, -0.5f, 0);
+    glScalef(0.15f, 0.35f, 0.15f);
+    glutSolidCube(1.0f);
+    glPopMatrix();
+    
+    glColor3f(0.9f, 0.9f, 0.9f);
+    glPushMatrix();
+    glTranslatef(0, -0.72f, 0.08f);
+    glScalef(0.18f, 0.1f, 0.25f);
+    glutSolidCube(1.0f);
+    glPopMatrix();
+    
+    glPopMatrix(); // End right leg
+    
+    // === TORSO ===
+    // Shirt color (vary by person)
+    if (isMale) {
+        glColor3f(0.3f, 0.7f, 0.3f); // Green shirt
+    } else {
+        glColor3f(0.9f, 0.6f, 0.2f); // Orange shirt
+    }
+    
+    glPushMatrix();
+    glTranslatef(0, 1.3f, 0);
+    glScalef(0.5f, 0.7f, 0.28f);
+    glutSolidCube(1.0f);
+    glPopMatrix();
+    
+    // === NECK ===
+    glColor3f(0.85f, 0.7f, 0.6f);
+    glPushMatrix();
+    glTranslatef(0, 1.75f, 0);
+    glScalef(0.15f, 0.15f, 0.15f);
+    glutSolidCube(1.0f);
+    glPopMatrix();
+    
+    // === HEAD ===
+    glPushMatrix();
+    glTranslatef(0, 1.95f, 0);
+    
+    // Face
+    glutSolidSphere(0.22f, 16, 16);
+    
+    // Eyes
+    glColor3f(0.1f, 0.1f, 0.1f);
+    glPushMatrix();
+    glTranslatef(-0.08f, 0.05f, 0.18f);
+    glutSolidSphere(0.03f, 8, 8);
+    glPopMatrix();
+    glPushMatrix();
+    glTranslatef(0.08f, 0.05f, 0.18f);
+    glutSolidSphere(0.03f, 8, 8);
+    glPopMatrix();
+    
+    // Hair
+    glColor3f(0.15f, 0.1f, 0.05f);
+    glPushMatrix();
+    glTranslatef(0, 0.15f, 0);
+    glScalef(1.1f, 0.8f, 1.0f);
+    glutSolidSphere(0.22f, 12, 12);
+    glPopMatrix();
+    
+    glPopMatrix(); // End head
+    
+    // === ARMS (swinging naturally while walking/jogging) ===
+    glColor3f(0.85f, 0.7f, 0.6f);
+    
+    // Left arm
+    glPushMatrix();
+    glTranslatef(-0.35f, 1.5f, 0);
+    glRotatef(state.armSwing1, 1, 0, 0); // Swing forward/back
+    glTranslatef(0, -0.25f, 0);
+    
+    // Upper arm
+    glPushMatrix();
+    glScalef(0.12f, 0.3f, 0.12f);
+    glutSolidCube(1.0f);
+    glPopMatrix();
+    
+    // Elbow
+    glPushMatrix();
+    glTranslatef(0, -0.18f, 0);
+    glutSolidSphere(0.08f, 10, 10);
+    glPopMatrix();
+    
+    // Forearm
+    glPushMatrix();
+    glTranslatef(0, -0.4f, 0);
+    glScalef(0.1f, 0.25f, 0.1f);
+    glutSolidCube(1.0f);
+    glPopMatrix();
+    
+    // Hand
+    glPushMatrix();
+    glTranslatef(0, -0.58f, 0);
+    glutSolidSphere(0.08f, 10, 10);
+    glPopMatrix();
+    
+    glPopMatrix(); // End left arm
+    
+    // Right arm
+    glPushMatrix();
+    glTranslatef(0.35f, 1.5f, 0);
+    glRotatef(state.armSwing2, 1, 0, 0); // Swing opposite to left arm
+    glTranslatef(0, -0.25f, 0);
+    
+    // Upper arm
+    glPushMatrix();
+    glScalef(0.12f, 0.3f, 0.12f);
+    glutSolidCube(1.0f);
+    glPopMatrix();
+    
+    // Elbow
+    glPushMatrix();
+    glTranslatef(0, -0.18f, 0);
+    glutSolidSphere(0.08f, 10, 10);
+    glPopMatrix();
+    
+    // Forearm
+    glPushMatrix();
+    glTranslatef(0, -0.4f, 0);
+    glScalef(0.1f, 0.25f, 0.1f);
+    glutSolidCube(1.0f);
+    glPopMatrix();
+    
+    // Hand
+    glPushMatrix();
+    glTranslatef(0, -0.58f, 0);
+    glutSolidSphere(0.08f, 10, 10);
+    glPopMatrix();
+    
+    glPopMatrix(); // End right arm
+    
+    glPopMatrix();
+}
+
+// Draw a dog (simple but recognizable)
+void drawDog(float x, float z, float angle) {
+    // Draw shadow
+    drawEllipticalShadow(x, z, 0.3f, 0.25f, 0.3f);
+    
+    glPushMatrix();
+    glTranslatef(x, 0, z);
+    glRotatef(angle, 0, 1, 0);
+    
+    // Dog color (brown)
+    glColor3f(0.55f, 0.35f, 0.2f);
+    
+    // === BODY ===
+    glPushMatrix();
+    glTranslatef(0, 0.35f, 0);
+    glScalef(0.5f, 0.3f, 0.3f);
+    glutSolidCube(1.0f);
+    glPopMatrix();
+    
+    // === HEAD ===
+    glPushMatrix();
+    glTranslatef(0.3f, 0.4f, 0);
+    glutSolidSphere(0.15f, 12, 12);
+    
+    // Snout
+    glColor3f(0.5f, 0.3f, 0.15f);
+    glPushMatrix();
+    glTranslatef(0.12f, -0.02f, 0);
+    glScalef(0.8f, 0.6f, 0.6f);
+    glutSolidSphere(0.1f, 8, 8);
+    glPopMatrix();
+    
+    // Ears
+    glColor3f(0.5f, 0.3f, 0.18f);
+    glPushMatrix();
+    glTranslatef(-0.05f, 0.12f, -0.1f);
+    glScalef(0.6f, 1.2f, 0.4f);
+    glutSolidSphere(0.08f, 8, 8);
+    glPopMatrix();
+    glPushMatrix();
+    glTranslatef(-0.05f, 0.12f, 0.1f);
+    glScalef(0.6f, 1.2f, 0.4f);
+    glutSolidSphere(0.08f, 8, 8);
+    glPopMatrix();
+    
+    glPopMatrix(); // End head
+    
+    // === TAIL ===
+    glColor3f(0.55f, 0.35f, 0.2f);
+    glPushMatrix();
+    glTranslatef(-0.28f, 0.45f, 0);
+    glRotatef(45, 0, 0, 1);
+    glScalef(0.08f, 0.25f, 0.08f);
+    glutSolidCube(1.0f);
+    glPopMatrix();
+    
+    // === LEGS (4 legs) ===
+    float legPositions[][2] = {
+        {0.15f, -0.12f},  // Front-left
+        {0.15f, 0.12f},   // Front-right
+        {-0.15f, -0.12f}, // Back-left
+        {-0.15f, 0.12f}   // Back-right
+    };
+    
+    for (int i = 0; i < 4; i++) {
+        glPushMatrix();
+        glTranslatef(legPositions[i][0], 0.15f, legPositions[i][1]);
+        glScalef(0.08f, 0.3f, 0.08f);
+        glutSolidCube(1.0f);
+        glPopMatrix();
+    }
+    
+    glPopMatrix();
+}
+
 // Draw improved ground with varied park terrain
 void drawGrassField() {
     // === DRAW BASE GROUND PLANE (similar to park terrain) ===
@@ -2688,6 +3003,118 @@ void updateBall() {
     player2State.jumpHeight *= 0.85f;
 }
 
+// Update walker positions and animations along the running track
+void updateWalkers() {
+    if (isPaused) return;
+    
+    // Track parameters (matching drawRunningTrack)
+    float trackOffset = 9.0f;
+    float trackWidth = 3.0f;
+    float trackMiddle = trackOffset + trackWidth / 2.0f; // Middle of track = 10.5f
+    
+    // Track dimensions
+    float trackHalfLength = COURT_LENGTH/2 + trackMiddle;
+    float trackHalfWidth = COURT_WIDTH/2 + trackMiddle;
+    
+    // Update each walker
+    WalkerState* walkers[] = {&walker1, &walker2, &walker3, &walker4};
+    bool isJogging[] = {false, false, false, false}; // All walkers walk at same pace
+    
+    for (int i = 0; i < 4; i++) {
+        WalkerState* w = walkers[i];
+        float walkSpeed = w->speed;
+        
+        // Update leg and arm animations (walking/jogging motion)
+        float animSpeed = isJogging[i] ? 15.0f : 10.0f;
+        float legAngleMax = isJogging[i] ? 40.0f : 25.0f;
+        float armAngleMax = isJogging[i] ? 30.0f : 20.0f;
+        
+        w->legAngle1 = sin(animationTime * animSpeed) * legAngleMax;
+        w->legAngle2 = -w->legAngle1; // Opposite leg
+        w->armSwing1 = sin(animationTime * animSpeed) * armAngleMax;
+        w->armSwing2 = -w->armSwing1; // Opposite arm
+        
+        // Move walker along track
+        // Track segments: 0=bottom, 1=right, 2=top, 3=left
+        switch(w->pathSegment) {
+            case 0: // Bottom segment (moving right, +X direction)
+                w->posX += walkSpeed;
+                w->angle = 90;
+                if (w->posX >= trackHalfLength) {
+                    w->pathSegment = 1;
+                    w->posX = trackHalfLength;
+                }
+                break;
+                
+            case 1: // Right segment (moving up, +Z direction)
+                w->posZ += walkSpeed;
+                w->angle = 0;
+                if (w->posZ >= trackHalfWidth) {
+                    w->pathSegment = 2;
+                    w->posZ = trackHalfWidth;
+                }
+                break;
+                
+            case 2: // Top segment (moving left, -X direction)
+                w->posX -= walkSpeed;
+                w->angle = 270;
+                if (w->posX <= -trackHalfLength) {
+                    w->pathSegment = 3;
+                    w->posX = -trackHalfLength;
+                }
+                break;
+                
+            case 3: // Left segment (moving down, -Z direction)
+                w->posZ -= walkSpeed;
+                w->angle = 180;
+                if (w->posZ <= -trackHalfWidth) {
+                    w->pathSegment = 0;
+                    w->posZ = -trackHalfWidth;
+                }
+                break;
+        }
+    }
+    
+    // Keep walker2 and walker3 walking side-by-side (parallel formation)
+    // Walker2 moves freely, walker3 follows with perpendicular offset
+    float coupleOffset = 0.5f; // Distance between the two people
+    
+    // Sync their segment and angle
+    walker3.pathSegment = walker2.pathSegment;
+    walker3.angle = walker2.angle;
+    
+    // Position walker3 relative to walker2 with perpendicular offset
+    switch(walker2.pathSegment) {
+        case 0: // Bottom segment - walking along +X direction
+            walker3.posX = walker2.posX; // Same X (forward) position
+            walker3.posZ = walker2.posZ + coupleOffset; // Offset to the side
+            break;
+            
+        case 1: // Right segment - walking along +Z direction
+            walker3.posZ = walker2.posZ; // Same Z (forward) position
+            walker3.posX = walker2.posX + coupleOffset; // Offset to the side
+            break;
+            
+        case 2: // Top segment - walking along -X direction
+            walker3.posX = walker2.posX; // Same X (forward) position
+            walker3.posZ = walker2.posZ - coupleOffset; // Offset to the side (opposite)
+            break;
+            
+        case 3: // Left segment - walking along -Z direction
+            walker3.posZ = walker2.posZ; // Same Z (forward) position
+            walker3.posX = walker2.posX - coupleOffset; // Offset to the side (opposite)
+            break;
+    }
+    
+    // Update dog position to follow walker1 (person with dog)
+    // Dog walks slightly behind and to the side
+    float dogOffsetDistance = 1.5f;
+    float angleRad = (walker1.angle - 45) * PI / 180.0f; // 45 degrees offset
+    dogPosX = walker1.posX - cos(angleRad) * dogOffsetDistance;
+    dogPosZ = walker1.posZ - sin(angleRad) * dogOffsetDistance;
+    dogAngle = walker1.angle; // Dog faces same direction as walker1
+}
+
 // Display function
 void display() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -2713,6 +3140,66 @@ void display() {
     drawRunningTrack(); // Draw running track around the court
     drawPerimeterFence(); // Draw ornamental iron fence around entire map
     drawSun();         // Draw sun with rays
+    
+    // === CLOUDS - Floating in the sky ===
+    // Daytime: All clouds visible
+    // Nighttime: Fewer clouds (only high and some medium clouds)
+    bool isDaytime = (timeOfDay >= 0.3f && timeOfDay <= 0.7f);
+    
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    
+    // === HIGH CLOUDS (25-30m) - Always visible (day and night) ===
+    drawCloud(0.0f, 28.0f, -15.0f, 1.8f);
+    drawCloud(-5.0f, 30.0f, 15.0f, 1.0f);
+    drawCloud(5.0f, 29.0f, 8.0f, 1.6f);
+    drawCloud(-18.0f, 27.0f, -12.0f, 1.3f);
+    drawCloud(22.0f, 30.0f, 5.0f, 1.1f);
+    drawCloud(-28.0f, 28.0f, 18.0f, 1.4f);
+    drawCloud(12.0f, 29.0f, -18.0f, 1.2f);
+    
+    if (isDaytime) {
+        // === DAYTIME: Show all medium and low clouds ===
+        
+        // MEDIUM CLOUDS (18-24m)
+        drawCloud(-15.0f, 20.0f, -10.0f, 1.2f);
+        drawCloud(10.0f, 22.0f, -5.0f, 1.5f);
+        drawCloud(20.0f, 18.0f, 10.0f, 1.3f);
+        drawCloud(-20.0f, 21.0f, 5.0f, 1.1f);
+        drawCloud(15.0f, 24.0f, -20.0f, 1.4f);
+        drawCloud(-10.0f, 19.0f, 20.0f, 1.0f);
+        drawCloud(-25.0f, 23.0f, -8.0f, 1.2f);
+        drawCloud(8.0f, 20.0f, 12.0f, 1.7f);
+        drawCloud(-12.0f, 22.0f, -15.0f, 1.3f);
+        drawCloud(25.0f, 21.0f, -3.0f, 1.5f);
+        drawCloud(-8.0f, 24.0f, 22.0f, 1.0f);
+        
+        // LOW CLOUDS (12-17m)
+        drawCloud(-18.0f, 14.0f, -8.0f, 2.0f);
+        drawCloud(14.0f, 13.0f, -12.0f, 1.8f);
+        drawCloud(-6.0f, 15.0f, 18.0f, 1.9f);
+        drawCloud(18.0f, 12.0f, 6.0f, 2.2f);
+        drawCloud(-22.0f, 16.0f, 12.0f, 1.7f);
+        drawCloud(6.0f, 14.0f, -18.0f, 2.1f);
+        drawCloud(-14.0f, 17.0f, -5.0f, 1.6f);
+        drawCloud(22.0f, 15.0f, -15.0f, 1.9f);
+        drawCloud(-3.0f, 13.0f, 10.0f, 2.3f);
+        drawCloud(10.0f, 16.0f, 16.0f, 1.8f);
+        drawCloud(-26.0f, 14.0f, -18.0f, 2.0f);
+        drawCloud(26.0f, 13.0f, 8.0f, 1.7f);
+        drawCloud(0.0f, 15.0f, -22.0f, 2.4f);
+        drawCloud(-10.0f, 12.0f, -12.0f, 2.1f);
+    } else {
+        // === NIGHTTIME: Show only some medium clouds (fewer) ===
+        drawCloud(-15.0f, 20.0f, -10.0f, 1.2f);
+        drawCloud(20.0f, 18.0f, 10.0f, 1.3f);
+        drawCloud(15.0f, 24.0f, -20.0f, 1.4f);
+        drawCloud(-25.0f, 23.0f, -8.0f, 1.2f);
+        drawCloud(25.0f, 21.0f, -3.0f, 1.5f);
+    }
+    
+    glDisable(GL_BLEND);
+    
     drawCourt();
     drawNet();
     drawBall();
@@ -2721,6 +3208,18 @@ void display() {
     // Draw players using DYNAMIC POSITIONS
     drawPlayer(player1State.posX, player1State.posZ, player1State, true);   
     drawPlayer(player2State.posX, player2State.posZ, player2State, false);
+    
+    // === WALKERS ON RUNNING TRACK - People enjoying the park ===
+    // Walker 1: Person with dog (male, walking)
+    drawWalker(walker1.posX, walker1.posZ, walker1, true, false);
+    drawDog(dogPosX, dogPosZ, dogAngle);
+    
+    // Walker 2 & 3: Walking couple (close together)
+    drawWalker(walker2.posX, walker2.posZ, walker2, true, false);   // Male
+    drawWalker(walker3.posX, walker3.posZ, walker3, false, false);  // Female
+    
+    // Walker 4: Walker (male, walking at same speed)
+    drawWalker(walker4.posX, walker4.posZ, walker4, true, false);
     
     // Draw park scenery - BEAUTIFUL ENHANCED PARK ATMOSPHERE! 🌳🌸
     
@@ -3040,6 +3539,12 @@ void display() {
     drawLargeTree(-COURT_LENGTH/2 - 10, COURT_WIDTH/2 + 15.8f);
     drawMediumTree(-COURT_LENGTH/2 - 5, COURT_WIDTH/2 + 16.2f);
     drawSmallTree(-COURT_LENGTH/2 - 2, COURT_WIDTH/2 + 15.5f);
+
+    drawMediumTree(-COURT_LENGTH/2 + 5, COURT_WIDTH/2 + 15.5f);
+    drawSmallTree(-COURT_LENGTH/2 + 6.8, COURT_WIDTH/2 + 15.5f);
+    drawLargeTree(-COURT_LENGTH/2 + 9, COURT_WIDTH/2 + 15.5f);
+    drawMediumTree(-COURT_LENGTH/2 + 12, COURT_WIDTH/2 + 15.5f);
+
     drawLargeTree(COURT_LENGTH/2 + 2, COURT_WIDTH/2 + 15.9f);
     drawMediumTree(COURT_LENGTH/2 + 5, COURT_WIDTH/2 + 16.1f);
     drawSmallTree(COURT_LENGTH/2 + 10, COURT_WIDTH/2 + 15.6f);
@@ -3088,6 +3593,7 @@ void reshape(int w, int h) {
 // Timer function
 void timer(int value) {
     updateBall();
+    updateWalkers();  // Update people walking/jogging on track
     glutPostRedisplay();
     glutTimerFunc(16, timer, 0);  // ~60 FPS
 }
