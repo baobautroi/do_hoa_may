@@ -177,29 +177,13 @@ void setupLighting() {
             glLightfv(lights[i], GL_SPECULAR, specular);
             glLightfv(lights[i], GL_AMBIENT, ambient);
             
-            // Spotlight parameters - Converge SLIGHTLY off-center to avoid centerline
-            // Each light focuses on its quadrant's play area
+            // Spotlight parameters - ALL lights converge to CENTER
+            // All 4 floodlights focus on the exact center of the court
             GLfloat centerY = 0.0f;  // Court surface level
             
-            // Determine target based on light position (which quadrant)
-            GLfloat targetX, targetZ;
-            if (floodlightData[i][0] < 0 && floodlightData[i][1] < 0) {
-                // Bottom-left light → focus on left-bottom quadrant
-                targetX = -COURT_LENGTH/4;
-                targetZ = -COURT_WIDTH/4;
-            } else if (floodlightData[i][0] > 0 && floodlightData[i][1] < 0) {
-                // Bottom-right light → focus on right-bottom quadrant
-                targetX = COURT_LENGTH/4;
-                targetZ = -COURT_WIDTH/4;
-            } else if (floodlightData[i][0] < 0 && floodlightData[i][1] > 0) {
-                // Top-left light → focus on left-top quadrant
-                targetX = -COURT_LENGTH/4;
-                targetZ = COURT_WIDTH/4;
-            } else {
-                // Top-right light → focus on right-top quadrant
-                targetX = COURT_LENGTH/4;
-                targetZ = COURT_WIDTH/4;
-            }
+            // ALL lights target the CENTER (0, 0)
+            GLfloat targetX = 0.0f;  // Center X
+            GLfloat targetZ = -3.2f;  // Center Z
             
             GLfloat dirX = targetX - floodlightData[i][0];
             GLfloat dirY = centerY - floodlightData[i][2];
