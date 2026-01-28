@@ -25,6 +25,7 @@
 #include <cstdio>
 #include <vector>
 #include <cstdlib>  // for rand()
+#include "GraphicsUtils_v2.h" // Enhanced graphics: Shadows (Fixed)
 #include "ModelLoader.h"  // 3D Model loader with Assimp
 
 // Constants
@@ -1186,6 +1187,9 @@ void drawPaddleFace(float width, float height, float thickness) {
 
 // Draw detailed realistic player with animations
 void drawPlayer(float x, float z, PlayerState& state, bool isPlayer1) {
+    // Draw shadow FIRST (before transforming player)
+    drawEllipticalShadow(x, z, 0.4f, 0.35f, 0.4f);
+    
     glPushMatrix();
     glTranslatef(x, state.jumpHeight, z);
     
