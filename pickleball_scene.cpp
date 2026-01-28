@@ -1083,33 +1083,22 @@ void drawPerimeterFence() {
     float gateZ = -COURT_WIDTH/2 - 15.0f;  // Same as arch gate position
     float gateWidth = 14.0f;  // Width of opening to leave clear (scaled gate + wings)
     
-    // Calculate total fence dimensions
+    // Calculate total lengths for perfect alignment
     float totalWidth = fenceRight - fenceLeft;
-    float totalDepth = fenceTop - fenceBottom;
+    float totalHeight = fenceTop - fenceBottom;
     
-    // === LEFT FENCE (vertical sections) - Draw FIRST to establish corners ===
-    int numSectionsLeft = (int)((totalDepth) / sectionWidth);
-    for (int i = 0; i < numSectionsLeft; i++) {
-        float z = fenceBottom + i * sectionWidth + sectionWidth/2;
-        drawOrnamentalFence(fenceLeft, z, 90, sectionWidth);
-    }
+    // === DRAW 4 CORNER SECTIONS FIRST (for perfect corners) ===
+    // Bottom-left corner
+    drawOrnamentalFence(fenceLeft + sectionWidth/2, fenceBottom + sectionWidth/2, 45, sectionWidth);
+    // Bottom-right corner  
+    drawOrnamentalFence(fenceRight - sectionWidth/2, fenceBottom + sectionWidth/2, -45, sectionWidth);
+    // Top-left corner
+    drawOrnamentalFence(fenceLeft + sectionWidth/2, fenceTop - sectionWidth/2, 135, sectionWidth);
+    // Top-right corner
+    drawOrnamentalFence(fenceRight - sectionWidth/2, fenceTop - sectionWidth/2, -135, sectionWidth);
     
-    // === RIGHT FENCE (vertical sections) ===
-    int numSectionsRight = (int)((totalDepth) / sectionWidth);
-    for (int i = 0; i < numSectionsRight; i++) {
-        float z = fenceBottom + i * sectionWidth + sectionWidth/2;
-        drawOrnamentalFence(fenceRight, z, 90, sectionWidth);
-    }
-    
-    // === BOTTOM FENCE (horizontal sections) - Skip corners and gate ===
-    // Start after left corner, end before right corner
-    float bottomStartX = fenceLeft + sectionWidth;  // Skip left corner
-    float bottomEndX = fenceRight - sectionWidth;   // Skip right corner
-    
-    int numSectionsBottom = (int)((bottomEndX - bottomStartX) / sectionWidth);
-    for (int i = 0; i < numSectionsBottom; i++) {
-        float x = bottomStartX + i * sectionWidth + sectionWidth/2;
-        
+    // === BOTTOM FENCE (horizontal sections) - SKIP NEAR GATE and CORNERS ===
+    for (float x = fenceLeft + sectionWidth * 1.5f; x < fenceRight - sectionWidth; x += sectionWidth) {
         // Skip sections near the gate entrance
         if (fabs(x - gateX) < gateWidth/2 + 2.2) {
             continue;  // Don't draw fence here - leave opening for gate
@@ -1118,15 +1107,19 @@ void drawPerimeterFence() {
         drawOrnamentalFence(x, fenceBottom, 0, sectionWidth);
     }
     
-    // === TOP FENCE (horizontal sections) - Skip corners ===
-    // Start after left corner, end before right corner
-    float topStartX = fenceLeft + sectionWidth;  // Skip left corner
-    float topEndX = fenceRight - sectionWidth;   // Skip right corner
-    
-    int numSectionsTop = (int)((topEndX - topStartX) / sectionWidth);
-    for (int i = 0; i < numSectionsTop; i++) {
-        float x = topStartX + i * sectionWidth + sectionWidth/2;
+    // === TOP FENCE (horizontal sections) - SKIP CORNERS ===
+    for (float x = fenceLeft + sectionWidth * 1.5f; x < fenceRight - sectionWidth; x += sectionWidth) {
         drawOrnamentalFence(x, fenceTop, 0, sectionWidth);
+    }
+    
+    // === LEFT FENCE (vertical sections) - SKIP CORNERS ===
+    for (float z = fenceBottom + sectionWidth * 1.5f; z < fenceTop - sectionWidth; z += sectionWidth) {
+        drawOrnamentalFence(fenceLeft, z, 90, sectionWidth);
+    }
+    
+    // === RIGHT FENCE (vertical sections) - SKIP CORNERS ===
+    for (float z = fenceBottom + sectionWidth * 1.5f; z < fenceTop - sectionWidth; z += sectionWidth) {
+        drawOrnamentalFence(fenceRight, z, 90, sectionWidth);
     }
 }
 
@@ -1525,7 +1518,7 @@ void drawCloud(float x, float y, float z, float scale) {
 void drawArchGate(float x, float z) {
     glPushMatrix();
     glTranslatef(x, 0, z);
-    glScalef(1.5f, 1.5f, 1.5f); // Scale entire gate by 1.5x
+    glScalef(1.56f, 1.56f, 1.56f); // Scale entire gate by 1.5x
     
     // Gate parameters
     float gateWidth = 8.0f;        // Total width of the arch
@@ -3020,6 +3013,61 @@ void display() {
         drawCloud(8, 17, -8, 0.9f);
         drawCloud(-12, 21, 3, 1.0f);
     }
+    
+    // === TREES OUTSIDE PERIMETER FENCE - Natural forest border ===
+    // Hàng rào đen ở vị trí ±15.0f từ tâm sân
+    // Đặt cây bên ngoài (xa hơn 15.0f) với các kích thước khác nhau
+    
+    // Bottom fence line (horizontal) - Outside trees
+    drawLargeTree(-COURT_LENGTH/2 - 17, -COURT_WIDTH/2 - 15.5f);
+    drawMediumTree(-COURT_LENGTH/2 - 19, -COURT_WIDTH/2 - 15.2f);
+    drawSmallTree(-COURT_LENGTH/2 - 21, -COURT_WIDTH/2 - 15.8f);
+    drawMediumTree(-COURT_LENGTH/2 - 10, -COURT_WIDTH/2 - 16.0f);
+    drawLargeTree(-COURT_LENGTH/2 - 5, -COURT_WIDTH/2 - 15.5f);
+    drawSmallTree(-COURT_LENGTH/2 - 2, -COURT_WIDTH/2 - 16.2f);
+    // Skip center area for gate
+    drawMediumTree(COURT_LENGTH/2 + 2, -COURT_WIDTH/2 - 15.7f);
+    drawLargeTree(COURT_LENGTH/2 + 5, -COURT_WIDTH/2 - 16.0f);
+    drawSmallTree(COURT_LENGTH/2 + 10, -COURT_WIDTH/2 - 15.5f);
+    drawMediumTree(COURT_LENGTH/2 + 17, -COURT_WIDTH/2 - 15.8f);
+    drawLargeTree(COURT_LENGTH/2 + 19, -COURT_WIDTH/2 - 16.2f);
+    drawSmallTree(COURT_LENGTH/2 + 21, -COURT_WIDTH/2 - 15.6f);
+    
+    // Top fence line (horizontal) - Outside trees
+    drawMediumTree(-COURT_LENGTH/2 - 17, COURT_WIDTH/2 + 15.5f);
+    drawLargeTree(-COURT_LENGTH/2 - 19, COURT_WIDTH/2 + 16.0f);
+    drawSmallTree(-COURT_LENGTH/2 - 21, COURT_WIDTH/2 + 15.7f);
+    drawLargeTree(-COURT_LENGTH/2 - 10, COURT_WIDTH/2 + 15.8f);
+    drawMediumTree(-COURT_LENGTH/2 - 5, COURT_WIDTH/2 + 16.2f);
+    drawSmallTree(-COURT_LENGTH/2 - 2, COURT_WIDTH/2 + 15.5f);
+    drawLargeTree(COURT_LENGTH/2 + 2, COURT_WIDTH/2 + 15.9f);
+    drawMediumTree(COURT_LENGTH/2 + 5, COURT_WIDTH/2 + 16.1f);
+    drawSmallTree(COURT_LENGTH/2 + 10, COURT_WIDTH/2 + 15.6f);
+    drawLargeTree(COURT_LENGTH/2 + 17, COURT_WIDTH/2 + 15.8f);
+    drawMediumTree(COURT_LENGTH/2 + 19, COURT_WIDTH/2 + 16.3f);
+    drawSmallTree(COURT_LENGTH/2 + 21, COURT_WIDTH/2 + 15.4f);
+    
+    // Left fence line (vertical) - Outside trees
+    drawLargeTree(-COURT_LENGTH/2 - 16.0f, -COURT_WIDTH/2 - 10);
+    drawMediumTree(-COURT_LENGTH/2 - 15.5f, -COURT_WIDTH/2 - 5);
+    drawSmallTree(-COURT_LENGTH/2 - 16.2f, -COURT_WIDTH/2 - 2);
+    drawMediumTree(-COURT_LENGTH/2 - 15.8f, COURT_WIDTH/2 + 2);
+    drawLargeTree(-COURT_LENGTH/2 - 16.1f, COURT_WIDTH/2 + 5);
+    drawSmallTree(-COURT_LENGTH/2 - 15.6f, COURT_WIDTH/2 + 10);
+    
+    // Right fence line (vertical) - Outside trees
+    drawMediumTree(COURT_LENGTH/2 + 15.7f, -COURT_WIDTH/2 - 10);
+    drawLargeTree(COURT_LENGTH/2 + 16.2f, -COURT_WIDTH/2 - 5);
+    drawSmallTree(COURT_LENGTH/2 + 15.5f, -COURT_WIDTH/2 - 2);
+    drawLargeTree(COURT_LENGTH/2 + 15.9f, COURT_WIDTH/2 + 2);
+    drawMediumTree(COURT_LENGTH/2 + 16.3f, COURT_WIDTH/2 + 5);
+    drawSmallTree(COURT_LENGTH/2 + 15.4f, COURT_WIDTH/2 + 10);
+    
+    // Corner accent trees (extra large for emphasis)
+    drawLargeTree(-COURT_LENGTH/2 - 18, -COURT_WIDTH/2 - 17);
+    drawLargeTree(COURT_LENGTH/2 + 18, -COURT_WIDTH/2 - 17);
+    drawLargeTree(-COURT_LENGTH/2 - 18, COURT_WIDTH/2 + 17);
+    drawLargeTree(COURT_LENGTH/2 + 18, COURT_WIDTH/2 + 17);
     
     // === ENTRANCE GATE - Parabolic arch at park entrance ===
     // Position: Front center, outside the running track
