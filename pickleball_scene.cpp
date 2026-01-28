@@ -400,6 +400,144 @@ void drawTree(float x, float z) {
     glPopMatrix();
 }
 
+// ============================================================================
+// TREE VARIANTS - DIFFERENT SIZES
+// ============================================================================
+
+// Draw SMALL tree (60% size) - For background/distance trees
+void drawSmallTree(float x, float z) {
+    glPushMatrix();
+    glTranslatef(x, 0, z);
+    
+    float swayAngle = sin(windTime + x * 0.5f + z * 0.3f) * windStrength * 3.0f;
+    
+    // Try to use 3D model if loaded
+    if (treeModel.getMeshCount() > 0) {
+        glRotatef(swayAngle, 0, 0, 1);
+        treeModel.render(0, 0, 0, 0.9f);  // 60% scale
+    } else {
+        // Geometric tree at 60% scale
+        glColor3f(0.55f, 0.35f, 0.2f);
+        glPushMatrix();
+        glRotatef(-90, 1, 0, 0);
+        GLUquadric* quad = gluNewQuadric();
+        gluCylinder(quad, 0.21f, 0.15f, 1.8f, 16, 4);
+        gluDeleteQuadric(quad);
+        glPopMatrix();
+        
+        glPushMatrix();
+        glTranslatef(0, 1.8f, 0);
+        glRotatef(swayAngle, 0, 0, 1);
+        
+        glColor3f(0.3f, 0.7f, 0.3f);
+        glutSolidSphere(0.84f, 16, 16);
+        
+        glColor3f(0.35f, 0.75f, 0.35f);
+        glPushMatrix();
+        glTranslatef(0, 0.48f, 0);
+        glutSolidSphere(0.66f, 16, 16);
+        glPopMatrix();
+        
+        glColor3f(0.4f, 0.8f, 0.4f);
+        glPushMatrix();
+        glTranslatef(0, 0.9f, 0);
+        glutSolidSphere(0.48f, 16, 16);
+        glPopMatrix();
+        
+        glPopMatrix();
+    }
+    
+    glPopMatrix();
+}
+
+// Draw MEDIUM tree (80% size) - For mid-distance trees
+void drawMediumTree(float x, float z) {
+    glPushMatrix();
+    glTranslatef(x, 0, z);
+    
+    float swayAngle = sin(windTime + x * 0.5f + z * 0.3f) * windStrength * 3.0f;
+    
+    if (treeModel.getMeshCount() > 0) {
+        glRotatef(swayAngle, 0, 0, 1);
+        treeModel.render(0, 0, 0, 1.2f);  // 80% scale
+    } else {
+        glColor3f(0.55f, 0.35f, 0.2f);
+        glPushMatrix();
+        glRotatef(-90, 1, 0, 0);
+        GLUquadric* quad = gluNewQuadric();
+        gluCylinder(quad, 0.28f, 0.20f, 2.4f, 16, 4);
+        gluDeleteQuadric(quad);
+        glPopMatrix();
+        
+        glPushMatrix();
+        glTranslatef(0, 2.4f, 0);
+        glRotatef(swayAngle, 0, 0, 1);
+        
+        glColor3f(0.3f, 0.7f, 0.3f);
+        glutSolidSphere(1.12f, 16, 16);
+        
+        glColor3f(0.35f, 0.75f, 0.35f);
+        glPushMatrix();
+        glTranslatef(0, 0.64f, 0);
+        glutSolidSphere(0.88f, 16, 16);
+        glPopMatrix();
+        
+        glColor3f(0.4f, 0.8f, 0.4f);
+        glPushMatrix();
+        glTranslatef(0, 1.2f, 0);
+        glutSolidSphere(0.64f, 16, 16);
+        glPopMatrix();
+        
+        glPopMatrix();
+    }
+    
+    glPopMatrix();
+}
+
+// Draw LARGE tree (120% size) - For emphasis/focal points
+void drawLargeTree(float x, float z) {
+    glPushMatrix();
+    glTranslatef(x, 0, z);
+    
+    float swayAngle = sin(windTime + x * 0.5f + z * 0.3f) * windStrength * 3.0f;
+    
+    if (treeModel.getMeshCount() > 0) {
+        glRotatef(swayAngle, 0, 0, 1);
+        treeModel.render(0, 0, 0, 1.8f);  // 120% scale
+    } else {
+        glColor3f(0.55f, 0.35f, 0.2f);
+        glPushMatrix();
+        glRotatef(-90, 1, 0, 0);
+        GLUquadric* quad = gluNewQuadric();
+        gluCylinder(quad, 0.42f, 0.30f, 3.6f, 16, 4);
+        gluDeleteQuadric(quad);
+        glPopMatrix();
+        
+        glPushMatrix();
+        glTranslatef(0, 3.6f, 0);
+        glRotatef(swayAngle, 0, 0, 1);
+        
+        glColor3f(0.3f, 0.7f, 0.3f);
+        glutSolidSphere(1.68f, 16, 16);
+        
+        glColor3f(0.35f, 0.75f, 0.35f);
+        glPushMatrix();
+        glTranslatef(0, 0.96f, 0);
+        glutSolidSphere(1.32f, 16, 16);
+        glPopMatrix();
+        
+        glColor3f(0.4f, 0.8f, 0.4f);
+        glPushMatrix();
+        glTranslatef(0, 1.8f, 0);
+        glutSolidSphere(0.96f, 16, 16);
+        glPopMatrix();
+        
+        glPopMatrix();
+    }
+    
+    glPopMatrix();
+}
+
 // Draw a bench
 void drawBench(float x, float z, float rotation) {
     glPushMatrix();
@@ -2092,21 +2230,28 @@ void display() {
     drawPath(COURT_LENGTH/2 + 5, COURT_WIDTH/2 + 5, 1.5f, 8.0f, 45);
     */
     
-    // === FENCES - Beautiful wooden fencing ===
-    // Bottom fence line
-    for (float x = -COURT_LENGTH/2 - 8; x <= COURT_LENGTH/2 + 8; x += 1.2f) {
+    // === FENCES - Beautiful wooden fencing (FIXED alignment) ===
+    
+    // CORNER POSTS (explicitly placed for perfect alignment)
+    drawFence(-COURT_LENGTH/2 - 8, -COURT_WIDTH/2 - 5, 0);  // Bottom-left corner
+    drawFence(COURT_LENGTH/2 + 8, -COURT_WIDTH/2 - 5, 0);   // Bottom-right corner
+    drawFence(-COURT_LENGTH/2 - 8, COURT_WIDTH/2 + 5, 0);   // Top-left corner
+    drawFence(COURT_LENGTH/2 + 8, COURT_WIDTH/2 + 5, 0);    // Top-right corner
+    
+    // Bottom fence line (horizontal) - excluding corners
+    for (float x = -COURT_LENGTH/2 - 8 + 1.2f; x < COURT_LENGTH/2 + 8; x += 1.2f) {
         drawFence(x, -COURT_WIDTH/2 - 5, 0);
     }
-    // Top fence line
-    for (float x = -COURT_LENGTH/2 - 8; x <= COURT_LENGTH/2 + 8; x += 1.2f) {
+    // Top fence line (horizontal) - excluding corners
+    for (float x = -COURT_LENGTH/2 - 8 + 1.2f; x < COURT_LENGTH/2 + 8; x += 1.2f) {
         drawFence(x, COURT_WIDTH/2 + 5, 0);
     }
-    // Left fence line
-    for (float z = -COURT_WIDTH/2 - 5; z <= COURT_WIDTH/2 + 5; z += 1.2f) {
+    // Left fence line (vertical) - excluding corners
+    for (float z = -COURT_WIDTH/2 - 5 + 1.2f; z < COURT_WIDTH/2 + 5; z += 1.2f) {
         drawFence(-COURT_LENGTH/2 - 8, z, 90);
     }
-    // Right fence line
-    for (float z = -COURT_WIDTH/2 - 5; z <= COURT_WIDTH/2 + 5; z += 1.2f) {
+    // Right fence line (vertical) - excluding corners
+    for (float z = -COURT_WIDTH/2 - 5 + 1.2f; z < COURT_WIDTH/2 + 5; z += 1.2f) {
         drawFence(COURT_LENGTH/2 + 8, z, 90);
     }
     
@@ -2136,10 +2281,10 @@ void display() {
     drawTree(COURT_LENGTH/2 + 5, COURT_WIDTH/2 + 1);
     
     // Far background trees (smaller perspective)
-    drawTree(-COURT_LENGTH/2 - 9, -COURT_WIDTH/2 - 6);
-    drawTree(-COURT_LENGTH/2 - 9, COURT_WIDTH/2 + 6);
-    drawTree(COURT_LENGTH/2 + 9, -COURT_WIDTH/2 - 6);
-    drawTree(COURT_LENGTH/2 + 9, COURT_WIDTH/2 + 6);
+    // drawTree(-COURT_LENGTH/2 - 9, -COURT_WIDTH/2 - 6);
+    // drawTree(-COURT_LENGTH/2 - 9, COURT_WIDTH/2 + 6);
+    // drawTree(COURT_LENGTH/2 + 9, -COURT_WIDTH/2 - 6);
+    // drawTree(COURT_LENGTH/2 + 9, COURT_WIDTH/2 + 6);
     
     // Clustered trees for natural look
     drawTree(-COURT_LENGTH/2 - 8, -COURT_WIDTH/2);
@@ -2272,23 +2417,23 @@ void display() {
     // drawFountain(COURT_LENGTH/2 + 8, 0);
     
     // === LARGE GARDEN BEDS - Beautiful flower beds! ===
-    // Corner garden beds (large, prominent)
-    drawGardenBed(-COURT_LENGTH/2 - 5.5f, -COURT_WIDTH/2 - 4, 2.5f, 2.0f);
-    drawGardenBed(COURT_LENGTH/2 + 5.5f, COURT_WIDTH/2 + 4, 2.5f, 2.0f);
-    drawGardenBed(-COURT_LENGTH/2 - 5.5f, COURT_WIDTH/2 + 4, 2.5f, 2.0f);
-    drawGardenBed(COURT_LENGTH/2 + 5.5f, -COURT_WIDTH/2 - 4, 2.5f, 2.0f);
+    // // Corner garden beds (large, prominent)
+    // drawGardenBed(-COURT_LENGTH/2 - 5.5f, -COURT_WIDTH/2 - 4, 2.5f, 2.0f);
+    // drawGardenBed(COURT_LENGTH/2 + 5.5f, COURT_WIDTH/2 + 4, 2.5f, 2.0f);
+    // drawGardenBed(-COURT_LENGTH/2 - 5.5f, COURT_WIDTH/2 + 4, 2.5f, 2.0f);
+    // drawGardenBed(COURT_LENGTH/2 + 5.5f, -COURT_WIDTH/2 - 4, 2.5f, 2.0f);
     
-    // Linear garden beds along paths
-    drawGardenBed(-COURT_LENGTH/2 + 1, -COURT_WIDTH/2 - 5.5f, 4.0f, 1.5f);
-    drawGardenBed(COURT_LENGTH/2 - 1, COURT_WIDTH/2 + 5.5f, 4.0f, 1.5f);
+    // // Linear garden beds along paths
+    // drawGardenBed(-COURT_LENGTH/2 + 1, -COURT_WIDTH/2 - 5.5f, 4.0f, 1.5f);
+    // drawGardenBed(COURT_LENGTH/2 - 1, COURT_WIDTH/2 + 5.5f, 4.0f, 1.5f);
     
-    // Side garden beds
-    drawGardenBed(-COURT_LENGTH/2 - 7, -COURT_WIDTH/2, 1.8f, 3.0f);
-    drawGardenBed(COURT_LENGTH/2 + 7, COURT_WIDTH/2, 1.8f, 3.0f);
+    // // Side garden beds
+    // drawGardenBed(-COURT_LENGTH/2 - 7, -COURT_WIDTH/2, 1.8f, 3.0f);
+    // drawGardenBed(COURT_LENGTH/2 + 7, COURT_WIDTH/2, 1.8f, 3.0f);
     
-    // Entrance garden beds
-    drawGardenBed(0, -COURT_WIDTH/2 - 7.5f, 3.5f, 1.2f);
-    drawGardenBed(0, COURT_WIDTH/2 + 8.5f, 5.0f, 1.5f);
+    // // Entrance garden beds
+    // drawGardenBed(0, -COURT_WIDTH/2 - 7.5f, 3.5f, 1.2f);
+    // drawGardenBed(0, COURT_WIDTH/2 + 8.5f, 5.0f, 1.5f);
     
     // === CIRCULAR FLOWER PATCHES - Round decorative gardens ===
     // // Main circular patches (highly visible)
@@ -2317,8 +2462,8 @@ void display() {
     drawPicnicTable(4, COURT_WIDTH/2 + 6, 0);
     
     // Side picnic areas
-    drawPicnicTable(-COURT_LENGTH/2 - 7, -COURT_WIDTH/2 - 4.5f, 45);
-    drawPicnicTable(COURT_LENGTH/2 + 7, COURT_WIDTH/2 + 4.5f, -45);
+    // drawPicnicTable(-COURT_LENGTH/2 - 7, -COURT_WIDTH/2 - 4.5f, 45);
+    // drawPicnicTable(COURT_LENGTH/2 + 7, COURT_WIDTH/2 + 4.5f, -45);
     
     // Additional scattered tables
     drawPicnicTable(-COURT_LENGTH/2 - 6, COURT_WIDTH/2 + 1, 90);
