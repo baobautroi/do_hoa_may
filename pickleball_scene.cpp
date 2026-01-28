@@ -137,59 +137,128 @@ void setupLighting() {
     float sunX, sunY, sunZ;
     getSunPosition(timeOfDay, sunX, sunY, sunZ);
     
-    // Main sun light - FIXED position and stronger
-    GLfloat lightPos[] = {sunX, sunY, sunZ, 1.0f};
+    bool isNight = (timeOfDay < 0.3f || timeOfDay > 0.7f);
     
-    // MUCH BRIGHTER lighting
-    float intensity = 1.0f;
-    GLfloat lightColor[4];
-    
-    if (timeOfDay < 0.25f || timeOfDay > 0.75f) {  // Night
-        intensity = 0.5f;  // Brighter night
-        lightColor[0] = 0.6f * intensity;
-        lightColor[1] = 0.6f * intensity;
-        lightColor[2] = 0.8f * intensity;
-    } else if (timeOfDay < 0.35f || timeOfDay > 0.65f) {  // Dawn/Dusk
-        intensity = 0.9f;  // Very bright
-        lightColor[0] = 1.0f * intensity;
-        lightColor[1] = 0.8f * intensity;
-        lightColor[2] = 0.6f * intensity;
-    } else {  // Day - VERY BRIGHT
-        intensity = 1.0f;
-        lightColor[0] = 1.0f;
-        lightColor[1] = 1.0f;
-        lightColor[2] = 0.95f;
-    }
-    lightColor[3] = 1.0f;
-    
-    glLightfv(GL_LIGHT0, GL_POSITION, lightPos);
-    glLightfv(GL_LIGHT0, GL_DIFFUSE, lightColor);
-    glLightfv(GL_LIGHT0, GL_SPECULAR, lightColor);
-    
-    // CRITICAL: HIGH AMBIENT LIGHT to prevent black objects
-    GLfloat ambient[] = {0.6f, 0.6f, 0.65f, 1.0f};  // Very bright ambient!
-    glLightfv(GL_LIGHT0, GL_AMBIENT, ambient);
-    
-    // Global ambient (scene-wide)
-    GLfloat globalAmbient[] = {0.4f, 0.4f, 0.45f, 1.0f};
-    glLightModelfv(GL_LIGHT_MODEL_AMBIENT, globalAmbient);
-    
-    // Street lamps
-    if (timeOfDay < 0.25f || timeOfDay > 0.75f) {
-        glEnable(GL_LIGHT1);
-        glEnable(GL_LIGHT2);
+    if (isNight) {
+        // === NIGHT MODE: Dark environment with stadium floodlights ===
         
-        GLfloat lampColor[] = {1.0f, 0.9f, 0.7f, 1.0f};
-        GLfloat lampPos1[] = {-COURT_LENGTH/2 - 3, 5.0f, COURT_WIDTH/2 + 3, 1.0f};
-        GLfloat lampPos2[] = {COURT_LENGTH/2 + 3, 5.0f, -COURT_WIDTH/2 - 3, 1.0f};
+        // Very low ambient light (dark night)
+        GLfloat darkAmbient[] = {0.05f, 0.05f, 0.08f, 1.0f};
+        glLightModelfv(GL_LIGHT_MODEL_AMBIENT, darkAmbient);
         
-        glLightfv(GL_LIGHT1, GL_POSITION, lampPos1);
-        glLightfv(GL_LIGHT1, GL_DIFFUSE, lampColor);
-        glLightfv(GL_LIGHT2, GL_POSITION, lampPos2);
-        glLightfv(GL_LIGHT2, GL_DIFFUSE, lampColor);
+        // Disable sun (GL_LIGHT0)
+        glDisable(GL_LIGHT0);
+        
+        // === STADIUM FLOODLIGHTS (4 powerful spotlights) ===
+        // Floodlight positions (matching drawCourtFloodlight positions)
+        float floodlightData[][3] = {
+            // x, z, height at 4 corners
+            {-COURT_LENGTH/2 - 2, -COURT_WIDTH/2 - 2, 10.0f},  // Bottom-left
+            {COURT_LENGTH/2 + 2, -COURT_WIDTH/2 - 2, 10.0f},   // Bottom-right
+            {-COURT_LENGTH/2 - 2, COURT_WIDTH/2 + 2, 10.0f},   // Top-left
+            {COURT_LENGTH/2 + 2, COURT_WIDTH/2 + 2, 10.0f}     // Top-right
+        };
+        
+        // Enable and configure 4 floodlights
+        GLenum lights[] = {GL_LIGHT1, GL_LIGHT2, GL_LIGHT3, GL_LIGHT4};
+        
+        for (int i = 0; i < 4; i++) {
+            glEnable(lights[i]);
+            
+            // Position at top of pole
+            GLfloat pos[] = {floodlightData[i][0], floodlightData[i][2], floodlightData[i][1], 1.0f};
+            glLightfv(lights[i], GL_POSITION, pos);
+            
+            // VERY BRIGHT white light (stadium quality - ENHANCED)
+            GLfloat diffuse[] = {1.5f, 1.5f, 1.4f, 1.0f};  // Boosted intensity
+            GLfloat specular[] = {1.0f, 1.0f, 1.0f, 1.0f};
+            GLfloat ambient[] = {0.3f, 0.3f, 0.3f, 1.0f};  // Added ambient contribution
+            glLightfv(lights[i], GL_DIFFUSE, diffuse);
+            glLightfv(lights[i], GL_SPECULAR, specular);
+            glLightfv(lights[i], GL_AMBIENT, ambient);
+            
+            // Spotlight parameters - Converge SLIGHTLY off-center to avoid centerline
+            // Each light focuses on its quadrant's play area
+            GLfloat centerY = 0.0f;  // Court surface level
+            
+            // Determine target based on light position (which quadrant)
+            GLfloat targetX, targetZ;
+            if (floodlightData[i][0] < 0 && floodlightData[i][1] < 0) {
+                // Bottom-left light → focus on left-bottom quadrant
+                targetX = -COURT_LENGTH/4;
+                targetZ = -COURT_WIDTH/4;
+            } else if (floodlightData[i][0] > 0 && floodlightData[i][1] < 0) {
+                // Bottom-right light → focus on right-bottom quadrant
+                targetX = COURT_LENGTH/4;
+                targetZ = -COURT_WIDTH/4;
+            } else if (floodlightData[i][0] < 0 && floodlightData[i][1] > 0) {
+                // Top-left light → focus on left-top quadrant
+                targetX = -COURT_LENGTH/4;
+                targetZ = COURT_WIDTH/4;
+            } else {
+                // Top-right light → focus on right-top quadrant
+                targetX = COURT_LENGTH/4;
+                targetZ = COURT_WIDTH/4;
+            }
+            
+            GLfloat dirX = targetX - floodlightData[i][0];
+            GLfloat dirY = centerY - floodlightData[i][2];
+            GLfloat dirZ = targetZ - floodlightData[i][1];
+            
+            GLfloat spotDir[] = {dirX, dirY, dirZ};
+            glLightfv(lights[i], GL_SPOT_DIRECTION, spotDir);
+            glLightf(lights[i], GL_SPOT_CUTOFF, 55.0f);  // Wider cone for overlap
+            glLightf(lights[i], GL_SPOT_EXPONENT, 6.0f);  // Very soft falloff
+            
+            // Minimal attenuation for maximum coverage
+            glLightf(lights[i], GL_CONSTANT_ATTENUATION, 1.0f);
+            glLightf(lights[i], GL_LINEAR_ATTENUATION, 0.002f);  // Very low
+            glLightf(lights[i], GL_QUADRATIC_ATTENUATION, 0.0002f);
+        }
+
+        
     } else {
+        // === DAY MODE: Natural sunlight ===
+        
+        // Disable stadium lights
         glDisable(GL_LIGHT1);
         glDisable(GL_LIGHT2);
+        glDisable(GL_LIGHT3);
+        glDisable(GL_LIGHT4);
+        
+        // Enable sun
+        glEnable(GL_LIGHT0);
+        
+        // Sun position and color
+        GLfloat lightPos[] = {sunX, sunY, sunZ, 1.0f};
+        
+        float intensity = 1.0f;
+        GLfloat lightColor[4];
+        
+        if (timeOfDay < 0.35f || timeOfDay > 0.65f) {  // Dawn/Dusk
+            intensity = 0.9f;
+            lightColor[0] = 1.0f * intensity;
+            lightColor[1] = 0.8f * intensity;
+            lightColor[2] = 0.6f * intensity;
+        } else {  // Full daylight
+            intensity = 1.0f;
+            lightColor[0] = 1.0f;
+            lightColor[1] = 1.0f;
+            lightColor[2] = 0.95f;
+        }
+        lightColor[3] = 1.0f;
+        
+        glLightfv(GL_LIGHT0, GL_POSITION, lightPos);
+        glLightfv(GL_LIGHT0, GL_DIFFUSE, lightColor);
+        glLightfv(GL_LIGHT0, GL_SPECULAR, lightColor);
+        
+        // Bright ambient for daytime
+        GLfloat ambient[] = {0.6f, 0.6f, 0.65f, 1.0f};
+        glLightfv(GL_LIGHT0, GL_AMBIENT, ambient);
+        
+        // Bright global ambient
+        GLfloat globalAmbient[] = {0.4f, 0.4f, 0.45f, 1.0f};
+        glLightModelfv(GL_LIGHT_MODEL_AMBIENT, globalAmbient);
     }
 }
 
@@ -575,46 +644,141 @@ void drawBench(float x, float z, float rotation) {
     glPopMatrix();
 }
 
-// Draw a street lamp
-void drawStreetLamp(float x, float z) {
+// Draw professional stadium floodlight (high-power, like football stadiums)
+void drawCourtFloodlight(float x, float z) {
     glPushMatrix();
     glTranslatef(x, 0, z);
     
-    // Pole
-    GLfloat poleColor[] = {0.2f, 0.2f, 0.2f, 1.0f};
-    //glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, poleColor);
-    
+    // === BASE (Concrete foundation) ===
+    glColor3f(0.4f, 0.4f, 0.4f);
     glPushMatrix();
-    glTranslatef(0, 2.5f, 0);
-    glRotatef(-90, 1, 0, 0);
-    GLUquadric* quad = gluNewQuadric();
-    gluCylinder(quad, 0.08f, 0.1f, 5.0f, 12, 1);
-    gluDeleteQuadric(quad);
+    glTranslatef(0, 0.2f, 0);
+    glScalef(0.5f, 0.4f, 0.5f);
+    glutSolidCube(1.0f);
     glPopMatrix();
     
-    // Lamp head
-    if (timeOfDay < 0.25f || timeOfDay > 0.75f) {
-        GLfloat lampColor[] = {1.0f, 0.9f, 0.6f, 1.0f};
-        GLfloat emission[] = {0.8f, 0.7f, 0.4f, 1.0f};
-        //glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, lampColor);
-        //glMaterialfv(GL_FRONT, GL_EMISSION, emission);
-    } else {
-        GLfloat lampColor[] = {0.8f, 0.8f, 0.8f, 1.0f};
-        GLfloat emission[] = {0.0f, 0.0f, 0.0f, 1.0f};
-        //glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, lampColor);
-        //glMaterialfv(GL_FRONT, GL_EMISSION, emission);
+    // === MAIN POLE (Thick metal pole - 10m tall) ===
+    glColor3f(0.2f, 0.2f, 0.2f);  // Dark metal gray
+    
+    glPushMatrix();
+    glTranslatef(0, 0.4f, 0);
+    glRotatef(-90, 1, 0, 0);
+    GLUquadric* pole = gluNewQuadric();
+    gluCylinder(pole, 0.18f, 0.14f, 9.6f, 20, 1);  // 10m pole
+    gluDeleteQuadric(pole);
+    glPopMatrix();
+    
+    // === TOP PLATFORM (for mounting lights) ===
+    glColor3f(0.25f, 0.25f, 0.25f);
+    glPushMatrix();
+    glTranslatef(0, 10.0f, 0);
+    glScalef(1.2f, 0.1f, 1.2f);
+    glutSolidCube(1.0f);
+    glPopMatrix();
+    
+    // === LIGHT HEADS (4 large stadium spotlights) ===
+    bool lightsOn = (timeOfDay < 0.3f || timeOfDay > 0.7f);  // Night mode
+    
+    // Floodlight positions (arranged in square pattern)
+    float lightPositions[][2] = {
+        {-0.45f, 0.45f},   // Top-left
+        {0.45f, 0.45f},    // Top-right
+        {-0.45f, -0.45f},  // Bottom-left
+        {0.45f, -0.45f}    // Bottom-right
+    };
+    
+    for (int i = 0; i < 4; i++) {
+        glPushMatrix();
+        glTranslatef(lightPositions[i][0], 10.0f, lightPositions[i][1]);
+        
+        // === MOUNTING ARM ===
+        glColor3f(0.15f, 0.15f, 0.15f);
+        glPushMatrix();
+        glTranslatef(0, -0.3f, 0);
+        glScalef(0.08f, 0.35f, 0.08f);
+        glutSolidCube(1.0f);
+        glPopMatrix();
+        
+        // === SPOTLIGHT HOUSING (Large reflector box) ===
+        glColor3f(0.18f, 0.18f, 0.18f);
+        glPushMatrix();
+        glTranslatef(0, -0.6f, 0);
+        glRotatef(45, 1, 0, 0);  // Angled down toward court
+        glScalef(0.35f, 0.4f, 0.3f);
+        glutSolidCube(1.0f);
+        glPopMatrix();
+        
+        // === LIGHT LENS/BULB (Front glass) ===
+        glPushMatrix();
+        glTranslatef(0, -0.75f, 0.12f);
+        glRotatef(45, 1, 0, 0);
+        
+        if (lightsOn) {
+            // BRIGHT INTENSE WHITE when ON (like stadium lights)
+            glColor3f(1.0f, 1.0f, 1.0f);
+            
+            // EMISSION for glowing effect
+            GLfloat emission[] = {1.0f, 1.0f, 0.9f, 1.0f};  // Bright glow
+            glMaterialfv(GL_FRONT, GL_EMISSION, emission);
+        } else {
+            // Dark gray when OFF
+            glColor3f(0.3f, 0.3f, 0.3f);
+            
+            // No emission
+            GLfloat noEmission[] = {0.0f, 0.0f, 0.0f, 1.0f};
+            glMaterialfv(GL_FRONT, GL_EMISSION, noEmission);
+        }
+        
+        // Large circular lens
+        glScalef(0.28f, 0.28f, 0.15f);
+        glutSolidSphere(1.0f, 16, 16);
+        glPopMatrix();
+        
+        // Reset emission after drawing
+        GLfloat noEmission[] = {0.0f, 0.0f, 0.0f, 1.0f};
+        glMaterialfv(GL_FRONT, GL_EMISSION, noEmission);
+        
+        // === LIGHT GLOW EFFECT (when ON) - Enhanced ===
+        if (lightsOn) {
+            // Enable blending for glow
+            glEnable(GL_BLEND);
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+            glDepthMask(GL_FALSE);
+            
+            glPushMatrix();
+            glTranslatef(0, -0.75f, 0.12f);
+            glRotatef(45, 1, 0, 0);
+            
+            // Inner bright glow
+            glColor4f(1.0f, 1.0f, 0.95f, 0.8f);
+            glScalef(0.32f, 0.32f, 0.18f);
+            glutSolidSphere(1.0f, 12, 12);
+            glPopMatrix();
+            
+            // Outer soft glow
+            glPushMatrix();
+            glTranslatef(0, -0.75f, 0.12f);
+            glRotatef(45, 1, 0, 0);
+            glColor4f(1.0f, 1.0f, 0.85f, 0.4f);
+            glScalef(0.45f, 0.45f, 0.25f);
+            glutSolidSphere(1.0f, 12, 12);
+            glPopMatrix();
+            
+            // Restore states
+            glDepthMask(GL_TRUE);
+            glDisable(GL_BLEND);
+        }
+        
+        glPopMatrix();
     }
     
-    glPushMatrix();
-    glTranslatef(0, 5.0f, 0);
-    glutSolidSphere(0.3f, 12, 12);
     glPopMatrix();
-    
-    // Reset emission
-    GLfloat noEmission[] = {0.0f, 0.0f, 0.0f, 1.0f};
-    //glMaterialfv(GL_FRONT, GL_EMISSION, noEmission);
-    
-    glPopMatrix();
+}
+
+// Draw a street lamp (DEPRECATED - kept for compatibility)
+void drawStreetLamp(float x, float z) {
+    // Redirect to court floodlight
+    drawCourtFloodlight(x, z);
 }
 
 // Draw a fence section
@@ -2381,22 +2545,12 @@ void display() {
     drawBench(-COURT_LENGTH/2 - 6, -COURT_WIDTH/2 - 2, 45);
     drawBench(COURT_LENGTH/2 + 6, COURT_WIDTH/2 + 2, -135);
     
-    // === STREET LAMPS - Bright illumination at night ===
-    // Corner lamps (primary lighting)
-    drawStreetLamp(-COURT_LENGTH/2 - 3, COURT_WIDTH/2 + 3);
-    drawStreetLamp(COURT_LENGTH/2 + 3, -COURT_WIDTH/2 - 3);
-    drawStreetLamp(-COURT_LENGTH/2 - 3, -COURT_WIDTH/2 - 3);
-    drawStreetLamp(COURT_LENGTH/2 + 3, COURT_WIDTH/2 + 3);
-    
-    // Side lamps for complete coverage
-    drawStreetLamp(-COURT_LENGTH/2 - 3, 0);
-    drawStreetLamp(COURT_LENGTH/2 + 3, 0);
-    drawStreetLamp(0, -COURT_WIDTH/2 - 5);
-    drawStreetLamp(0, COURT_WIDTH/2 + 5);
-    
-    // Additional pathway lighting
-    drawStreetLamp(-COURT_LENGTH/2 - 6, -COURT_WIDTH/2 - 5);
-    drawStreetLamp(COURT_LENGTH/2 + 6, COURT_WIDTH/2 + 5);
+    // === COURT FLOODLIGHTS - Professional stadium lighting ===
+    // 4 tall floodlights at corners (auto ON at night, OFF during day)
+    drawCourtFloodlight(-COURT_LENGTH/2 - 2, -COURT_WIDTH/2 - 2);  // Bottom-left
+    drawCourtFloodlight(COURT_LENGTH/2 + 2, -COURT_WIDTH/2 - 2);   // Bottom-right
+    drawCourtFloodlight(-COURT_LENGTH/2 - 2, COURT_WIDTH/2 + 2);   // Top-left
+    drawCourtFloodlight(COURT_LENGTH/2 + 2, COURT_WIDTH/2 + 2);    // Top-right
     
     // === TRASH BINS - Clean park maintenance ===
     drawTrashBin(-COURT_LENGTH/2 - 2.5f, -COURT_WIDTH/2 - 1.5f);
