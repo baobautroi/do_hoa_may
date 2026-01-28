@@ -759,11 +759,158 @@ void drawCourtFloodlight(float x, float z) {
     glPopMatrix();
 }
 
-// Draw a street lamp (DEPRECATED - kept for compatibility)
-void drawStreetLamp(float x, float z) {
-    // Redirect to court floodlight
-    drawCourtFloodlight(x, z);
+// Draw modern street lamp for running track
+void drawStreetLamp(float x, float z, float rotation) {
+    glPushMatrix();
+    glTranslatef(x, 0, z);
+    glRotatef(rotation, 0, 1, 0);
+    
+    bool isNight = (timeOfDay < 0.25f || timeOfDay > 0.75f);
+    
+    // === 1. POLE (Metallic Silver) ===
+    glColor3f(0.7f, 0.75f, 0.8f);
+    glPushMatrix();
+    glRotatef(-90, 1, 0, 0);
+    GLUquadric* quad = gluNewQuadric();
+    gluCylinder(quad, 0.1f, 0.08f, 5.0f, 16, 1);  // 5m height (smaller than floodlights)
+    
+    // Top cap ball
+    glPushMatrix();
+    glTranslatef(0, 0, 5.0f);
+    glutSolidSphere(0.12f, 12, 12);
+    glPopMatrix();
+    
+    gluDeleteQuadric(quad);
+    glPopMatrix();
+    
+    // === 2. CURVED ARM ===
+    glPushMatrix();
+    glTranslatef(0, 4.5f, 0); // Start arm 0.5m from top
+    // Arm extending outward (no additional rotation - already rotated at start)
+    
+    // Create a curved effect using rotated cylinder segments
+    float armLen = 1.5f;
+    float angleStep = 10.0f;
+    int segments = 4;
+    
+    glColor3f(0.7f, 0.75f, 0.8f);
+    
+    float currentX = 0;
+    float currentY = 0;
+    
+    for(int i=0; i<segments; i++) {
+        glPushMatrix();
+        glTranslatef(currentX, currentY, 0);
+        glRotatef(30.0f - i*angleStep, 0, 0, 1); // Curve upward then flat
+        glRotatef(-90, 0, 1, 0); // Cylinder along X
+        
+        GLUquadric* arm = gluNewQuadric();
+        gluCylinder(arm, 0.07f, 0.07f, armLen/segments, 8, 1);
+        gluDeleteQuadric(arm);
+        glPopMatrix();
+        
+        // Calculate next pos approx
+        float ang = (30.0f - i*angleStep) * PI / 180.0f;
+        currentX += (armLen/segments) * cos(ang);
+        currentY += (armLen/segments) * sin(ang);
+    }
+    
+    // Save final arm position for light effect
+    float finalArmX = currentX;
+    float finalArmY = currentY;
+    
+    // === 3. LAMP HEAD ===
+    glTranslatef(currentX, currentY, 0);
+    glRotatef(-10, 0, 0, 1); // Tilt head slightly down
+    
+    // Housing
+    glColor3f(0.3f, 0.3f, 0.35f); // Dark grey housing
+    glPushMatrix();
+    glScalef(0.4f, 0.1f, 0.25f);
+    glutSolidCube(1.0f);
+    glPopMatrix();
+    
+    // Light Face
+    glTranslatef(0, -0.055f, 0);
+    
+    if (isNight) {
+        // GLOWING YELLOW AT NIGHT
+        glColor3f(1.0f, 0.9f, 0.5f);
+        GLfloat emission[] = {1.0f, 0.9f, 0.4f, 1.0f};
+        glMaterialfv(GL_FRONT, GL_EMISSION, emission);
+    } else {
+        glColor3f(0.9f, 0.9f, 0.9f);
+        GLfloat noEmission[] = {0.0f, 0.0f, 0.0f, 1.0f};
+        glMaterialfv(GL_FRONT, GL_EMISSION, noEmission);
+    }
+    
+    glPushMatrix();
+    glScalef(0.35f, 0.02f, 0.2f);
+    glutSolidCube(1.0f);
+    glPopMatrix();
+    
+    // Reset Emission
+    GLfloat noEmission[] = {0.0f, 0.0f, 0.0f, 1.0f};
+    glMaterialfv(GL_FRONT, GL_EMISSION, noEmission);
+    
+    glPopMatrix(); // End Arm/Head
+    
+    // === 4. LIGHT CONE & GROUND SPOT (Visual Effect) ===
+    if (isNight) {
+        // Use actual arm position
+        float lightHeight = 4.5f + finalArmY;
+        
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE); // Additive blending
+        glDepthMask(GL_FALSE);
+        
+        // 4.1 Light Cone (Shaft) - pointing downward
+        glPushMatrix();
+        glTranslatef(finalArmX, 0, 0);
+        glRotatef(-90, 1, 0, 0); // Point down (cone apex down)
+        
+        // Transparent Yellow Cone
+        glColor4f(1.0f, 0.9f, 0.4f, 0.15f); 
+        glutSolidCone(1.8f, lightHeight, 16, 1); 
+        glPopMatrix();
+        
+        // 4.2 Light Spot on Ground (Track illumination)
+        glPushMatrix();
+        glTranslatef(finalArmX, 0.02f, 0); // Just above ground
+        
+        // Bright center spot
+        glColor4f(1.0f, 0.9f, 0.5f, 0.35f);
+        glBegin(GL_TRIANGLE_FAN);
+        glVertex3f(0, 0, 0);
+        for(int i=0; i<=16; i++) {
+            float a = i * 2.0f * PI / 16.0f;
+            glVertex3f(cos(a)*1.2f, 0, sin(a)*1.2f);
+        }
+        glEnd();
+        
+        // Softer outer glow (Yellow)
+        glColor4f(1.0f, 0.85f, 0.3f, 0.2f);
+        glBegin(GL_TRIANGLE_FAN);
+        glVertex3f(0, 0, 0);
+        for(int i=0; i<=16; i++) {
+            float a = i * 2.0f * PI / 16.0f;
+            glVertex3f(cos(a)*3.0f, 0, sin(a)*3.0f);
+        }
+        glEnd();
+        
+        glPopMatrix();
+        
+        glDepthMask(GL_TRUE);
+        glDisable(GL_BLEND);
+        
+        // Restore standard blending if needed elsewhere
+        glEnable(GL_BLEND); 
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    }
+    
+    glPopMatrix();
 }
+
 
 // Draw a fence section
 void drawFence(float x, float z, float rotation) {
@@ -2050,6 +2197,33 @@ void drawRunningTrack() {
     glVertex3f(outerX, 0.01f, outerZ);   // Top-right
     glVertex3f(-outerX, 0.01f, outerZ);  // Top-left
     glEnd();
+    
+    
+    // === STREET LAMPS along the track ===
+    // Place lamps close to the track edge
+    float lampMargin = trackOffset + trackWidth + 0.3f;  // Very close to track
+    
+    // Bottom side (-Z) - 4 lamps
+    drawStreetLamp(-COURT_LENGTH/2 - trackOffset, -COURT_WIDTH/2 - lampMargin, -90);
+    drawStreetLamp(-COURT_LENGTH/2 - trackOffset + 10.0f, -COURT_WIDTH/2 - lampMargin, -90);
+    drawStreetLamp(-COURT_LENGTH/2 - trackOffset + 28.0f, -COURT_WIDTH/2 - lampMargin, -90);
+    drawStreetLamp(COURT_LENGTH/2 + trackOffset, -COURT_WIDTH/2 - lampMargin, -90);
+    
+    // Top side (+Z) - 4 lamps
+    drawStreetLamp(-COURT_LENGTH/2 - trackOffset, COURT_WIDTH/2 + lampMargin, 90);
+    drawStreetLamp(-COURT_LENGTH/2 - trackOffset + 10.0f, COURT_WIDTH/2 + lampMargin, 90);
+    drawStreetLamp(-COURT_LENGTH/2 - trackOffset + 19.0f, COURT_WIDTH/2 + lampMargin, 90);
+    drawStreetLamp(-COURT_LENGTH/2 - trackOffset + 28.0f, COURT_WIDTH/2 + lampMargin, 90);
+    drawStreetLamp(COURT_LENGTH/2 + trackOffset, COURT_WIDTH/2 + lampMargin, 90);
+    
+    // Left side (-X) - 2 lamps
+    drawStreetLamp(-COURT_LENGTH/2 - lampMargin, -COURT_WIDTH/2 - trackOffset + 8.0f, 0);
+    drawStreetLamp(-COURT_LENGTH/2 - lampMargin, -COURT_WIDTH/2 - trackOffset + 20.0f, 0);
+    
+    // Right side (+X) - 2 lamps
+    drawStreetLamp(COURT_LENGTH/2 + lampMargin, -COURT_WIDTH/2 - trackOffset + 8.0f, 180);
+    drawStreetLamp(COURT_LENGTH/2 + lampMargin, -COURT_WIDTH/2 - trackOffset + 20.0f, 180);
+    
     
     glPopMatrix();
 }
