@@ -941,6 +941,196 @@ void drawFence(float x, float z, float rotation) {
     glPopMatrix();
 }
 
+// Draw ornamental iron fence section (decorative metal fence with arched top)
+void drawOrnamentalFence(float x, float z, float rotation, float sectionWidth = 2.5f) {
+    glPushMatrix();
+    glTranslatef(x, 0, z);
+    glRotatef(rotation, 0, 1, 0);
+    
+    // === Parameters ===
+    float fenceHeight = 1.8f;        // Total height of fence
+    float postWidth = 0.15f;         // Width of main posts
+    float postHeight = 2.2f;         // Height of posts (taller than fence)
+    float barThickness = 0.03f;      // Thickness of vertical bars
+    int numBars = 12;                // Number of vertical bars
+    
+    // Black metal color (dark gray for realistic metal)
+    glColor3f(0.15f, 0.15f, 0.15f);
+    
+    // === DRAW TWO MAIN POSTS (left and right) ===
+    for (int side = 0; side < 2; side++) {
+        float postX = (side == 0) ? -sectionWidth/2 : sectionWidth/2;
+        
+        glPushMatrix();
+        glTranslatef(postX, 0, 0);
+        
+        // Main post (square)
+        glPushMatrix();
+        glTranslatef(0, postHeight/2, 0);
+        glScalef(postWidth, postHeight, postWidth);
+        glutSolidCube(1.0f);
+        glPopMatrix();
+        
+        // Post cap (decorative top)
+        glPushMatrix();
+        glTranslatef(0, postHeight, 0);
+        
+        // Small pyramid/cone top
+        glColor3f(0.2f, 0.2f, 0.2f);
+        glPushMatrix();
+        glRotatef(-90, 1, 0, 0);
+        GLUquadric* capCone = gluNewQuadric();
+        gluCylinder(capCone, postWidth * 0.7f, 0.0f, 0.3f, 8, 1);
+        gluDeleteQuadric(capCone);
+        glPopMatrix();
+        
+        // Decorative ball/sphere finial on top
+        glTranslatef(0, 0.4f, 0);
+        glColor3f(0.18f, 0.18f, 0.18f);
+        glutSolidSphere(0.12f, 12, 12);
+        
+        glPopMatrix();
+        glPopMatrix();
+        
+        glColor3f(0.15f, 0.15f, 0.15f); // Reset color
+    }
+    
+    // === DRAW HORIZONTAL RAILS ===
+    // Bottom rail
+    glPushMatrix();
+    glTranslatef(0, 0.3f, 0);
+    glScalef(sectionWidth, 0.04f, 0.04f);
+    glutSolidCube(1.0f);
+    glPopMatrix();
+    
+    // Top rail (follows the arch - we'll approximate with straight section)
+    glPushMatrix();
+    glTranslatef(0, fenceHeight - 0.2f, 0);
+    glScalef(sectionWidth, 0.04f, 0.04f);
+    glutSolidCube(1.0f);
+    glPopMatrix();
+    
+    // === DRAW VERTICAL BARS WITH ARCHED TOP ===
+    for (int i = 0; i < numBars; i++) {
+        float barX = -sectionWidth/2 + (sectionWidth / (numBars - 1)) * i;
+        
+        // Skip bars where posts are
+        if (fabs(barX - (-sectionWidth/2)) < 0.1f || fabs(barX - (sectionWidth/2)) < 0.1f) {
+            continue;
+        }
+        
+        // Calculate height for arched effect
+        // Parabolic arch: height increases towards center
+        float normalizedX = (barX) / (sectionWidth/2); // -1 to 1
+        float archBoost = 0.3f * (1.0f - normalizedX * normalizedX); // Parabola
+        float barHeight = fenceHeight + archBoost;
+        
+        glPushMatrix();
+        glTranslatef(barX, 0, 0);
+        
+        // Main vertical bar
+        glPushMatrix();
+        glTranslatef(0, barHeight/2, 0);
+        glScalef(barThickness, barHeight, barThickness);
+        glutSolidCube(1.0f);
+        glPopMatrix();
+        
+        // Pointed spike top
+        glPushMatrix();
+        glTranslatef(0, barHeight, 0);
+        glRotatef(-90, 1, 0, 0);
+        GLUquadric* spike = gluNewQuadric();
+        gluCylinder(spike, barThickness, 0.0f, 0.15f, 6, 1);
+        gluDeleteQuadric(spike);
+        glPopMatrix();
+        
+        glPopMatrix();
+    }
+    
+    // === DECORATIVE ELEMENTS (optional patterns) ===
+    // Middle decorative rail with pattern
+    glPushMatrix();
+    glTranslatef(0, fenceHeight/2, 0);
+    
+    // Small decorative circles/diamonds along middle
+    for (int i = 1; i < numBars - 1; i += 2) {
+        float decorX = -sectionWidth/2 + (sectionWidth / (numBars - 1)) * i;
+        glPushMatrix();
+        glTranslatef(decorX, 0, 0);
+        glScalef(0.08f, 0.08f, 0.03f);
+        glutSolidSphere(1.0f, 8, 8);
+        glPopMatrix();
+    }
+    glPopMatrix();
+    
+    glPopMatrix();
+}
+
+// Draw perimeter fence around entire map
+void drawPerimeterFence() {
+    // Fence parameters
+    float fenceDistance = 15.0f;  // Distance from court center to fence
+    float sectionWidth = 2.5f;    // Width of each fence section
+    
+    // Calculate fence boundaries (outside the running track)
+    float fenceLeft = -COURT_LENGTH/2 - fenceDistance;
+    float fenceRight = COURT_LENGTH/2 + fenceDistance;
+    float fenceBottom = -COURT_WIDTH/2 - fenceDistance;
+    float fenceTop = COURT_WIDTH/2 + fenceDistance;
+    
+    // Gate parameters (arch gate is at x=0, z=-COURT_WIDTH/2 - 15.0f)
+    float gateX = 0.0f;
+    float gateZ = -COURT_WIDTH/2 - 15.0f;  // Same as arch gate position
+    float gateWidth = 14.0f;  // Width of opening to leave clear (scaled gate + wings)
+    
+    // Calculate total fence dimensions
+    float totalWidth = fenceRight - fenceLeft;
+    float totalDepth = fenceTop - fenceBottom;
+    
+    // === LEFT FENCE (vertical sections) - Draw FIRST to establish corners ===
+    int numSectionsLeft = (int)((totalDepth) / sectionWidth);
+    for (int i = 0; i < numSectionsLeft; i++) {
+        float z = fenceBottom + i * sectionWidth + sectionWidth/2;
+        drawOrnamentalFence(fenceLeft, z, 90, sectionWidth);
+    }
+    
+    // === RIGHT FENCE (vertical sections) ===
+    int numSectionsRight = (int)((totalDepth) / sectionWidth);
+    for (int i = 0; i < numSectionsRight; i++) {
+        float z = fenceBottom + i * sectionWidth + sectionWidth/2;
+        drawOrnamentalFence(fenceRight, z, 90, sectionWidth);
+    }
+    
+    // === BOTTOM FENCE (horizontal sections) - Skip corners and gate ===
+    // Start after left corner, end before right corner
+    float bottomStartX = fenceLeft + sectionWidth;  // Skip left corner
+    float bottomEndX = fenceRight - sectionWidth;   // Skip right corner
+    
+    int numSectionsBottom = (int)((bottomEndX - bottomStartX) / sectionWidth);
+    for (int i = 0; i < numSectionsBottom; i++) {
+        float x = bottomStartX + i * sectionWidth + sectionWidth/2;
+        
+        // Skip sections near the gate entrance
+        if (fabs(x - gateX) < gateWidth/2 + 2.2) {
+            continue;  // Don't draw fence here - leave opening for gate
+        }
+        
+        drawOrnamentalFence(x, fenceBottom, 0, sectionWidth);
+    }
+    
+    // === TOP FENCE (horizontal sections) - Skip corners ===
+    // Start after left corner, end before right corner
+    float topStartX = fenceLeft + sectionWidth;  // Skip left corner
+    float topEndX = fenceRight - sectionWidth;   // Skip right corner
+    
+    int numSectionsTop = (int)((topEndX - topStartX) / sectionWidth);
+    for (int i = 0; i < numSectionsTop; i++) {
+        float x = topStartX + i * sectionWidth + sectionWidth/2;
+        drawOrnamentalFence(x, fenceTop, 0, sectionWidth);
+    }
+}
+
+
 // Draw a path/walkway section
 void drawPath(float x, float z, float width, float length, float rotation) {
     glPushMatrix();
@@ -2528,10 +2718,12 @@ void display() {
     // Draw scene elements
     drawGrassField();  // Draw grass first (background)
     drawRunningTrack(); // Draw running track around the court
+    drawPerimeterFence(); // Draw ornamental iron fence around entire map
     drawSun();         // Draw sun with rays
     drawCourt();
     drawNet();
     drawBall();
+
     
     // Draw players using DYNAMIC POSITIONS
     drawPlayer(player1State.posX, player1State.posZ, player1State, true);   
